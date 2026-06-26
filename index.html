@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>শিক্ষার্থী ডিরেক্টরি</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;color:#1E293B;min-height:100vh;}
+
+/* HEADER */
+.header{background:linear-gradient(160deg,#0D2561 0%,#1440A0 50%,#1a52c4 100%);color:white;text-align:center;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(13,37,97,0.5);padding:22px 60px 20px 60px;}
+.header h1{font-size:20px;font-weight:800;letter-spacing:0.5px;line-height:1.4;text-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer;}
+.header h2{font-size:14px;font-weight:500;opacity:0.85;margin-top:5px;}
+.header .subtitle{margin-top:13px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);padding:5px 16px;border-radius:20px;}
+.header .subtitle::before{content:'👥';font-size:13px;}
+.header::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.07) 0%,transparent 70%);}
+.header-info-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#fff8ee,#ffe0b2);color:#0D2561;border:none;cursor:pointer;font-size:16px;font-style:italic;font-family:Georgia,serif;font-weight:bold;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #d4a056,0 6px 10px rgba(0,0,0,0.2);animation:pulse-btn 2.5s infinite;z-index:10;}
+@keyframes pulse-btn{0%,100%{transform:translateY(-50%) scale(0.96);}70%{transform:translateY(-50%) scale(1);}}
+
+/* CONTAINER */
+.container{max-width:500px;margin:0 auto;padding:18px 14px;}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:20px;}
+.search-wrap .icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:#94A3B8;}
+.search-wrap input{width:100%;padding:13px 40px 13px 42px;border-radius:14px;border:1.5px solid #E2E8F0;font-size:14px;outline:none;background:white;box-shadow:0 2px 8px rgba(0,0,0,0.04);font-family:inherit;transition:all 0.2s;}
+.search-wrap input:focus{border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,0.1);}
+.clear-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:#F1F5F9;border:none;width:24px;height:24px;border-radius:50%;font-size:12px;cursor:pointer;color:#64748B;}
+.section-label{font-size:11px;color:#94A3B8;margin-bottom:12px;padding-left:4px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+
+/* TEACHER BUTTON */
+.teacher-main-btn{display:flex;align-items:center;justify-content:space-between;width:100%;padding:16px;margin-bottom:16px;border-radius:16px;cursor:pointer;border:1.5px solid #0D2561;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);box-shadow:0 4px 12px rgba(13,37,97,0.12);transition:all 0.18s;}
+.teacher-main-btn:active{transform:scale(0.98);}
+.teacher-main-btn .left{display:flex;align-items:center;gap:14px;}
+.teacher-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#0D2561,#1440A0);color:white;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 3px 8px rgba(0,0,0,0.2);}
+.teacher-main-label{font-weight:700;font-size:15px;color:#0D2561;}
+.teacher-main-sub{font-size:12px;color:#4338CA;margin-top:2px;font-weight:500;}
+
+/* CLASS BUTTONS */
+.class-btn{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 16px;margin-bottom:10px;border-radius:16px;cursor:pointer;border:1.5px solid;box-shadow:0 2px 8px rgba(0,0,0,0.04);transition:all 0.18s;background:white;}
+.class-btn:active{transform:scale(0.98);}
+.class-btn .left{display:flex;align-items:center;gap:14px;}
+.class-icon{width:42px;height:42px;border-radius:12px;color:white;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0;box-shadow:0 3px 8px rgba(0,0,0,0.15);}
+.class-name{font-weight:700;font-size:15px;color:#0F172A;}
+.class-count{font-size:12px;color:#94A3B8;margin-top:2px;font-weight:500;}
+
+/* CARDS */
+.student-card{background:white;border-radius:14px;padding:12px 14px;margin-bottom:10px;border:1.5px solid #F1F5F9;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.student-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.student-info{flex:1;min-width:0;}
+.roll-badge{display:inline-flex;align-items:center;background:linear-gradient(135deg,#2563EB,#1D4ED8);color:white;font-weight:700;font-size:11px;padding:2px 10px;border-radius:20px;margin-bottom:4px;box-shadow:0 2px 6px rgba(37,99,235,0.3);}
+.teacher-badge{display:inline-flex;align-items:center;background:linear-gradient(135deg,#0D2561,#1440A0);color:white;font-weight:700;font-size:11px;padding:2px 10px;border-radius:20px;margin-bottom:4px;box-shadow:0 2px 6px rgba(13,37,97,0.3);}
+.teacher-desig{font-size:12px;color:#1440A0;font-weight:600;margin-top:2px;}
+.student-info .name{font-weight:700;font-size:15px;color:#0F172A;line-height:1.3;}
+.student-info .father{font-size:12px;color:#64748B;margin-top:2px;}
+.student-info .phone-num{font-size:12px;color:#64748B;margin-top:2px;font-weight:500;}
+.student-info .badge{display:inline-block;margin-top:4px;font-size:11px;border-radius:20px;padding:2px 8px;font-weight:600;}
+.call-wrap{flex-shrink:0;}
+.call-btn{
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,#12D98A,#059669);
+  color:white;width:52px;height:52px;border-radius:50%;
+  text-decoration:none;font-size:22px;
+  box-shadow:0 4px 0 #047857, 0 6px 16px rgba(16,185,129,0.4);
+  transition:all 0.15s;position:relative;
+}
+.call-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #047857,0 2px 8px rgba(16,185,129,0.3);}
+.student-actions{display:flex;gap:6px;margin-top:8px;border-top:1px solid #F1F5F9;padding-top:8px;}
+.edit-btn{flex:1;padding:7px 10px;border-radius:8px;border:1.5px solid #E2E8F0;background:#F8FAFC;color:#475569;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.del-btn{flex:1;padding:7px 10px;border-radius:8px;border:1.5px solid #FEE2E2;background:#FEF2F2;color:#EF4444;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+
+/* VACANT BOX */
+.vacant-box{background:#FFF1F2;border:1.5px solid #FCA5A5;border-radius:14px;padding:16px;margin-bottom:12px;text-align:center;color:#EF4444;font-weight:600;font-size:14px;}
+
+/* SECTION DIVIDER */
+.section-divider{font-size:13px;font-weight:800;color:#0D2561;text-transform:uppercase;letter-spacing:1.5px;margin:20px 0 12px;padding:10px 14px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border-left:4px solid #1440A0;border-radius:0 10px 10px 0;}
+
+/* FORMS */
+.edit-card{background:#F0F9FF;border-radius:16px;padding:16px;border:1.5px solid #BAE6FD;margin-bottom:12px;}
+.edit-card .edit-title{font-weight:700;margin-bottom:14px;color:#1E3A8A;font-size:14px;}
+.form-label{font-size:12px;color:#64748B;margin-bottom:3px;font-weight:600;}
+.form-input{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid #E2E8F0;font-size:14px;margin-bottom:10px;outline:none;font-family:inherit;background:white;}
+.form-input:focus{border-color:#3B82F6;}
+.add-card{background:white;border-radius:16px;padding:16px;border:1.5px solid #E2E8F0;margin-top:12px;box-shadow:0 4px 12px rgba(0,0,0,0.04);}
+.add-card .add-title{font-weight:700;margin-bottom:14px;color:#1E293B;font-size:14px;}
+.btn-row{display:flex;gap:8px;margin-top:6px;}
+.btn-primary{flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#2563EB,#1D4ED8);color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-secondary{flex:1;padding:12px;border-radius:10px;border:none;background:#F1F5F9;color:#475569;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+.add-student-trigger{width:100%;padding:14px;border-radius:14px;border:2px dashed #CBD5E1;background:transparent;color:#64748B;font-size:14px;cursor:pointer;margin-top:12px;font-family:inherit;}
+.class-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+
+/* BACK ROW */
+.back-row{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.back-btn{background:linear-gradient(135deg,#0D2561,#1440A0);border:none;border-radius:20px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;color:white;font-family:inherit;box-shadow:0 3px 10px rgba(13,37,97,0.25);transition:all 0.2s;}
+.back-btn:active{transform:scale(0.96);}
+.back-title{font-weight:700;font-size:17px;color:#0F172A;}
+.back-sub{font-size:12px;color:#94A3B8;margin-top:2px;}
+
+/* MISC */
+.no-result{text-align:center;color:#94A3B8;padding:36px;background:white;border-radius:14px;}
+.result-count{font-size:12px;color:#94A3B8;margin-bottom:12px;padding-left:4px;font-weight:600;}
+
+/* MODALS */
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center;}
+.modal-overlay.active{display:flex;}
+.modal-box{background:white;border-radius:20px;padding:28px 22px;width:90%;max-width:340px;box-shadow:0 24px 48px rgba(0,0,0,0.15);}
+.modal-title{font-size:17px;font-weight:700;color:#0F172A;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:#64748B;margin-bottom:10px;}
+.modal-input{width:100%;padding:13px;border-radius:10px;border:1.5px solid #E2E8F0;font-size:16px;outline:none;font-family:inherit;text-align:center;margin-bottom:4px;transition:border-color 0.2s;}
+.modal-input.pw{letter-spacing:6px;}
+.modal-input:focus{border-color:#2563EB;}
+.modal-error{font-size:12px;color:#EF4444;margin-bottom:14px;min-height:18px;}
+.modal-btns{display:flex;gap:8px;}
+
+/* SETTINGS */
+.settings-btn{position:fixed;bottom:22px;right:16px;background:linear-gradient(135deg,#1E3A8A,#2563EB);color:white;border:none;width:46px;height:46px;border-radius:50%;font-size:17px;cursor:pointer;box-shadow:0 6px 16px rgba(30,58,138,0.35);display:flex;align-items:center;justify-content:center;}
+
+/* DEVELOPER PAGE */
+.dev-header{background:linear-gradient(160deg,#0D2561 0%,#1440A0 50%,#1a52c4 100%);color:white;display:flex;align-items:center;padding:0 16px;height:60px;position:sticky;top:0;z-index:999;box-shadow:0 4px 16px rgba(13,37,97,0.4);}
+.dev-back-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:white;font-size:13px;font-weight:600;cursor:pointer;padding:7px 14px;border-radius:20px;font-family:inherit;transition:all 0.2s;}
+.dev-back-btn:active{background:rgba(255,255,255,0.25);}
+.dev-title{flex:1;text-align:center;font-weight:700;font-size:15px;}
+.dev-page{background:#F0F4F8;min-height:100vh;}
+.profile-section{padding:0 0 40px;}
+.dev-banner{background:linear-gradient(160deg,#0D2561 0%,#1440A0 60%,#1a52c4 100%);padding:40px 20px 70px;text-align:center;position:relative;}
+.dev-avatar{width:100px;height:100px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);display:block;margin:0 auto;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,0.2);}
+.dev-card{background:white;border-radius:20px;margin:0 16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,0.08);position:relative;margin-top:-40px;}
+.dev-name{font-size:20px;font-weight:800;color:#0D2561;text-align:center;}
+.dev-post{margin-top:6px;font-size:13px;font-weight:700;color:white;background:linear-gradient(135deg,#1440A0,#1a52c4);display:inline-block;padding:4px 14px;border-radius:20px;}
+.dev-post-wrap{text-align:center;margin-top:10px;}
+.dev-divider{height:1px;background:#F1F5F9;margin:16px 0;}
+.dev-info-row{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #F1F5F9;}
+.dev-info-row:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.dev-info-label{font-size:11px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.dev-info-value{font-size:14px;color:#0F172A;font-weight:600;margin-top:3px;}
+
+.hidden{display:none;}
+</style>
+</head>
+<body>
+
+<!-- MAIN HEADER -->
+<div class="header" id="mainHeader">
+  <h1 id="schoolNameDisplay" onclick="changeSchoolName()">৯৪ নং পশ্চিম চরলাঠিমারা</h1>
+  <h2>সরকারি প্রাথমিক বিদ্যালয়</h2>
+  <div class="subtitle" id="totalLabel">শিক্ষার্থী ডিরেক্টরি</div>
+  <button class="header-info-btn" onclick="openDeveloperPage()">i</button>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container" id="mainContent">
+  <div class="search-wrap">
+    <span class="icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="নাম বা ফোন নম্বর দিয়ে খুঁজুন..." oninput="onSearch()" />
+    <button class="clear-btn hidden" id="clearBtn" onclick="clearSearch()">✕</button>
+  </div>
+  <div id="searchResults" class="hidden"></div>
+
+  <div id="homePage">
+    <!-- Teacher button -->
+    <button class="teacher-main-btn" onclick="openTeacherPage()">
+      <div class="left">
+        <span class="teacher-icon">👨‍🏫</span>
+        <div>
+          <div class="teacher-main-label">শিক্ষক তালিকা</div>
+          <div class="teacher-main-sub" id="teacherCountLabel">লোড হচ্ছে...</div>
+        </div>
+      </div>
+      <span style="font-size:20px;color:#1440A0">›</span>
+    </button>
+
+    <!-- Class list -->
+    <div class="section-label">শ্রেণী নির্বাচন করুন</div>
+    <div id="classList"><div class="loading"><div class="spinner"></div>লোড হচ্ছে...</div></div>
+  </div>
+
+  <!-- Student page -->
+  <div id="studentPage" class="hidden"></div>
+
+  <!-- Teacher page -->
+  <div id="teacherPage" class="hidden"></div>
+</div>
+
+<!-- DEVELOPER PAGE -->
+<div id="developerPage" class="hidden dev-page">
+  <div class="dev-header">
+    <button class="dev-back-btn" onclick="closeDeveloperPage()">← ফিরে যান</button>
+    <span class="dev-title">Developer Info</span>
+    <button onclick="handleSettingsClick()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:white;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">⚙️</button>
+  </div>
+  <div class="profile-section">
+    <div class="dev-banner">
+      <img class="dev-avatar" src="photo.jpg" alt="Developer Photo" onerror="this.outerHTML='<div style=&quot;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:44px;box-shadow:0 8px 24px rgba(0,0,0,0.2);&quot;>👨‍💻</div>'" />
+    </div>
+    <div class="dev-card">
+      <div class="dev-name">মোঃ নাফিউল ইসলাম ফাহাদ</div>
+      <div class="dev-post-wrap">
+        <span class="dev-post">সহকারী শিক্ষক</span>
+      </div>
+      <div class="dev-divider"></div>
+      <div class="dev-info-row">
+        <div>
+          <div class="dev-info-label">বিদ্যালয়</div>
+          <div class="dev-info-value">পশ্চিম চরলাঠিমারা সরকারি প্রাথমিক বিদ্যালয়</div>
+        </div>
+      </div>
+      <div class="dev-info-row">
+        <div>
+          <div class="dev-info-label">দায়িত্ব</div>
+          <div class="dev-info-value">আইসিটি বিষয়ক সম্পাদক</div>
+        </div>
+      </div>
+      <div class="dev-info-row">
+        <div>
+          <div class="dev-info-label">সংগঠন</div>
+          <div class="dev-info-value">প্রাথমিক শিক্ষক সমিতি, পাথরঘাটা, বরগুনা</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-overlay" id="pwModal">
+  <div class="modal-box">
+    <div class="modal-title">🔒 পাসওয়ার্ড দিন</div>
+    <div class="modal-sub">এই কাজটি করতে পাসওয়ার্ড প্রয়োজন</div>
+    <input class="modal-input pw" type="password" id="pwInput" placeholder="••••" maxlength="20" />
+    <div class="modal-error" id="pwError"></div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="confirmPassword()">নিশ্চিত করুন</button>
+      <button class="btn-secondary" onclick="closeModal()">বাতিল</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="changePwModal">
+  <div class="modal-box">
+    <div class="modal-title">🔑 পাসওয়ার্ড পরিবর্তন</div>
+    <div class="modal-sub">পুরনো পাসওয়ার্ড</div>
+    <input class="modal-input pw" type="password" id="oldPw" placeholder="••••" maxlength="20" style="margin-bottom:12px" />
+    <div class="modal-sub">নতুন পাসওয়ার্ড</div>
+    <input class="modal-input pw" type="password" id="newPw" placeholder="••••" maxlength="20" style="margin-bottom:12px" />
+    <div class="modal-sub">নতুন পাসওয়ার্ড আবার দিন</div>
+    <input class="modal-input pw" type="password" id="confirmPw" placeholder="••••" maxlength="20" />
+    <div class="modal-error" id="changePwError"></div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="doChangePassword()">পরিবর্তন করুন</button>
+      <button class="btn-secondary" onclick="document.getElementById('changePwModal').classList.remove('active')">বাতিল</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHOOL NAME MODAL -->
+<div class="modal-overlay" id="schoolNameModal">
+  <div class="modal-box">
+    <div class="modal-title">🏫 স্কুলের নাম পরিবর্তন</div>
+    <div class="modal-sub">মাস্টার পাসওয়ার্ড</div>
+    <input class="modal-input pw" type="password" id="schoolNamePw" placeholder="••••" maxlength="20" style="margin-bottom:12px" />
+    <div class="modal-sub">নতুন স্কুলের নাম</div>
+    <input class="modal-input" type="text" id="newSchoolName" placeholder="স্কুলের নাম লিখুন" style="text-align:left;font-size:14px;" />
+    <div class="modal-error" id="schoolNameError"></div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="saveSchoolName()">পরিবর্তন করুন</button>
+      <button class="btn-secondary" onclick="document.getElementById('schoolNameModal').classList.remove('active')">বাতিল</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAX TEACHERS MODAL -->
+<div class="modal-overlay" id="maxTeacherModal">
+  <div class="modal-box">
+    <div class="modal-title">👨‍🏫 সর্বোচ্চ শিক্ষক সংখ্যা</div>
+    <div class="modal-sub">মাস্টার পাসওয়ার্ড দিন</div>
+    <input class="modal-input pw" type="password" id="maxTeacherPw" placeholder="••••" maxlength="20" style="margin-bottom:12px" />
+    <div class="modal-sub">সর্বোচ্চ শিক্ষক সংখ্যা</div>
+    <input class="modal-input" type="number" id="maxTeacherInput" placeholder="৬" min="1" max="50" style="font-size:18px;" />
+    <div class="modal-error" id="maxTeacherError"></div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="saveMaxTeachers()">পরিবর্তন করুন</button>
+      <button class="btn-secondary" onclick="document.getElementById('maxTeacherModal').classList.remove('active')">বাতিল</button>
+    </div>
+  </div>
+</div>
+
+<!-- MASTER PASSWORD MODAL -->
+<div class="modal-overlay" id="masterPwModal">
+  <div class="modal-box">
+    <div class="modal-title">🔐 মাস্টার পাসওয়ার্ড পরিবর্তন</div>
+    <div class="modal-sub">পুরনো মাস্টার পাসওয়ার্ড</div>
+    <input class="modal-input pw" type="password" id="oldMasterPw" placeholder="••••" maxlength="30" style="margin-bottom:12px" />
+    <div class="modal-sub">নতুন মাস্টার পাসওয়ার্ড</div>
+    <input class="modal-input pw" type="password" id="newMasterPw" placeholder="••••" maxlength="30" style="margin-bottom:12px" />
+    <div class="modal-sub">নতুন মাস্টার পাসওয়ার্ড আবার দিন</div>
+    <input class="modal-input pw" type="password" id="confirmMasterPw" placeholder="••••" maxlength="30" />
+    <div class="modal-error" id="masterPwError"></div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="saveMasterPassword()">পরিবর্তন করুন</button>
+      <button class="btn-secondary" onclick="document.getElementById('masterPwModal').classList.remove('active')">বাতিল</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS BUTTON -->
+<button class="settings-btn" onclick="handleSettingsClick()">⚙️</button>
+
+<script>
+// ============ CONFIG ============
+let MAX_TEACHERS = parseInt(localStorage.getItem('maxTeachers')) || 6;
+
+// ============ PASSWORDS ============
+let savedPassword = '1234'; // Firestore থেকে লোড হবে
+let MASTER_PASSWORD = 'School@2025'; // Firestore থেকে লোড হবে
+let pendingAction = null;
+let passwordsLoaded = false;
+
+// EmailJS init
+emailjs.init('DXQ1C6JevFrfjxqpr');
+
+// Firestore থেকে পাসওয়ার্ড লোড
+function loadPasswords() {
+  db.collection("settings").doc("passwords").get().then(doc => {
+    if (doc.exists) {
+      savedPassword = doc.data().userPassword || '1234';
+      MASTER_PASSWORD = doc.data().masterPassword || 'School@2025';
+    } else {
+      // প্রথমবার — Firestore এ সেভ করি
+      db.collection("settings").doc("passwords").set({
+        userPassword: '1234',
+        masterPassword: 'School@2025'
+      });
+    }
+    passwordsLoaded = true;
+  }).catch(e => {
+    console.log("পাসওয়ার্ড লোড সমস্যা:", e);
+    passwordsLoaded = true;
+  });
+}
+
+// ============ SCHOOL NAME ============
+let schoolName = localStorage.getItem("schoolName") || "৯৪ নং পশ্চিম চরলাঠিমারা";
+function updateSchoolNameDisplay() {
+  const el = document.getElementById("schoolNameDisplay");
+  if (el) el.textContent = schoolName;
+}
+function updateSubtitle() {
+  const el = document.getElementById("totalLabel");
+  if (!el) return;
+  if (currentPage === 'teacher') {
+    el.textContent = "শিক্ষক তালিকা · " + allTeachers.length + "/" + MAX_TEACHERS + " জন";
+  } else {
+    el.textContent = "শিক্ষার্থী ডিরেক্টরি · মোট " + allStudents.length + " জন";
+  }
+}
+function changeSchoolName() {
+  document.getElementById("schoolNamePw").value = "";
+  document.getElementById("newSchoolName").value = schoolName;
+  document.getElementById("schoolNameError").textContent = "";
+  document.getElementById("schoolNameModal").classList.add("active");
+}
+function saveSchoolName() {
+  const pw = document.getElementById("schoolNamePw").value;
+  const newName = document.getElementById("newSchoolName").value.trim();
+  if (pw !== MASTER_PASSWORD) { document.getElementById("schoolNameError").textContent = "ভুল মাস্টার পাসওয়ার্ড!"; return; }
+  if (!newName) { document.getElementById("schoolNameError").textContent = "নাম লিখুন!"; return; }
+  schoolName = newName;
+  localStorage.setItem("schoolName", newName);
+  updateSchoolNameDisplay();
+  document.getElementById("schoolNameModal").classList.remove("active");
+  alert("✅ স্কুলের নাম পরিবর্তন হয়েছে!");
+}
+
+// ============ DEVELOPER PAGE ============
+function openDeveloperPage() {
+  document.getElementById("mainHeader").classList.add("hidden");
+  document.getElementById("mainContent").classList.add("hidden");
+  document.querySelector(".settings-btn").classList.add("hidden");
+  document.getElementById("developerPage").classList.remove("hidden");
+  history.pushState({ page: "developer" }, "");
+}
+function closeDeveloperPage() {
+  document.getElementById("developerPage").classList.add("hidden");
+  document.getElementById("mainHeader").classList.remove("hidden");
+  document.getElementById("mainContent").classList.remove("hidden");
+  document.querySelector(".settings-btn").classList.remove("hidden");
+}
+
+// ============ COLORS ============
+const classColors = {
+  "প্রাক-প্রাথমিক":  { bg:"#FEFCE8", border:"#EAB308", badge:"#CA8A04", icon:"০" },
+  "প্রথম শ্রেণী":    { bg:"#EFF6FF", border:"#3B82F6", badge:"#2563EB", icon:"১" },
+  "দ্বিতীয় শ্রেণী": { bg:"#F0FDF4", border:"#22C55E", badge:"#16A34A", icon:"২" },
+  "তৃতীয় শ্রেণী":   { bg:"#FFF7ED", border:"#F97316", badge:"#EA580C", icon:"৩" },
+  "চতুর্থ শ্রেণী":   { bg:"#FDF4FF", border:"#A855F7", badge:"#9333EA", icon:"৪" },
+  "পঞ্চম শ্রেণী":    { bg:"#FFF1F2", border:"#F43F5E", badge:"#E11D48", icon:"৫" },
+};
+const classOrder = ["প্রাক-প্রাথমিক","প্রথম শ্রেণী","দ্বিতীয় শ্রেণী","তৃতীয় শ্রেণী","চতুর্থ শ্রেণী","পঞ্চম শ্রেণী"];
+
+// ============ DATA ============
+// ============ Firebase Config ============
+const firebaseConfig = {
+  apiKey: "AIzaSyDy5UDpyaqTd0f1dGg6VsO0wvtIh3tMjhM",
+  authDomain: "dpemyschool.firebaseapp.com",
+  projectId: "dpemyschool",
+  storageBucket: "dpemyschool.firebasestorage.app",
+  messagingSenderId: "240356158141",
+  appId: "1:240356158141:web:bddd21dcc0837b30f665d4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let allStudents = [];
+const DESIGNATIONS = ["সহকারী শিক্ষক","প্রধান শিক্ষক","প্রধান শিক্ষক (চলতি দায়িত্ব)","প্রধান শিক্ষক (ভারপ্রাপ্ত)"];
+let allTeachers = [];
+let currentClass = null;
+let editingStudentId = null;
+let addingStudent = false;
+let editingTeacherId = null;
+let addingTeacher = false;
+let currentPage = 'home'; // home | student | teacher
+
+// ============ HELPERS ============
+function isHeadTeacher(d) {
+  return d === "প্রধান শিক্ষক" || d === "প্রধান শিক্ষক (চলতি দায়িত্ব)";
+}
+function isActingHead(d) {
+  return d === "প্রধান শিক্ষক (ভারপ্রাপ্ত)";
+}
+
+function studentsOfClass(cls) {
+  return allStudents.filter(s => s.className === cls).sort((a,b) => (parseInt(a.roll)||999)-(parseInt(b.roll)||999));
+}
+
+// ============ HOME PAGE ============
+function renderHome() {
+  currentPage = 'home';
+  document.getElementById("totalLabel").textContent = "শিক্ষার্থী ডিরেক্টরি · মোট " + allStudents.length + " জন";
+  document.getElementById("teacherCountLabel").textContent = allTeachers.length + " জন শিক্ষক";
+
+  const c = document.getElementById("classList");
+  c.innerHTML = "";
+  classOrder.forEach(cls => {
+    const students = studentsOfClass(cls);
+    const col = classColors[cls];
+    const btn = document.createElement("button");
+    btn.className = "class-btn";
+    btn.style.background = col.bg;
+    btn.style.borderColor = col.border;
+    btn.innerHTML = `
+      <div class="left">
+        <span class="class-icon" style="background:${col.badge}">${col.icon}</span>
+        <div>
+          <div class="class-name">${cls}</div>
+          <div class="class-count">${students.length} জন শিক্ষার্থী</div>
+        </div>
+      </div>
+      <span style="font-size:20px;color:${col.badge}">›</span>`;
+    btn.onclick = () => openClass(cls);
+    c.appendChild(btn);
+  });
+}
+
+// ============ STUDENT PAGE ============
+function openClass(cls) {
+  currentClass = cls; editingStudentId = null; addingStudent = false;
+  currentPage = 'student';
+  document.getElementById("homePage").classList.add("hidden");
+  document.getElementById("studentPage").classList.remove("hidden");
+  history.pushState({ page:'student', cls }, '');
+  renderStudentPage();
+}
+
+function goBackHome() {
+  currentClass = null; editingStudentId = null; addingStudent = false;
+  editingTeacherId = null; addingTeacher = false;
+  currentPage = 'home';
+  document.getElementById("studentPage").classList.add("hidden");
+  document.getElementById("teacherPage").classList.add("hidden");
+  document.getElementById("homePage").classList.remove("hidden");
+  updateSubtitle();
+  renderHome();
+}
+
+function renderStudentPage() {
+  const col = classColors[currentClass];
+  const students = studentsOfClass(currentClass);
+  let html = `
+    <div class="back-row">
+      <button class="back-btn" onclick="goBackHome()">‹ ফিরে যান</button>
+      <div>
+        <div class="back-title">${currentClass}</div>
+        <div class="back-sub">${students.length} জন শিক্ষার্থী</div>
+      </div>
+    </div>`;
+
+  if (!students.length) html += `<div class="no-result">এই শ্রেণীতে কোনো শিক্ষার্থী নেই</div>`;
+
+  students.forEach(s => {
+    if (editingStudentId === s.id) {
+      html += `
+        <div class="edit-card">
+          <div class="edit-title">✏️ তথ্য সম্পাদনা</div>
+          <div class="form-label">রোল নম্বর</div>
+          <input class="form-input" id="eRoll" type="number" value="${s.roll||''}" placeholder="রোল নম্বর" />
+          <div class="form-label">শিক্ষার্থীর নাম</div>
+          <input class="form-input" id="eName" value="${s.name}" placeholder="শিক্ষার্থীর নাম" />
+          <div class="form-label">বাবার নাম</div>
+          <input class="form-input" id="eFather" value="${s.father}" placeholder="বাবার নাম" />
+          <div class="form-label">ফোন নাম্বার</div>
+          <input class="form-input" id="ePhone" type="tel" value="${s.phone}" placeholder="ফোন নাম্বার" />
+          <div class="form-label">শ্রেণী পরিবর্তন</div>
+          <select class="form-input class-select" id="eClass">
+            ${classOrder.map(c=>`<option value="${c}" ${c===currentClass?'selected':''}>${c}</option>`).join('')}
+          </select>
+          <div class="btn-row">
+            <button class="btn-primary" onclick="saveStudent('${s.id}')">সেভ করুন</button>
+            <button class="btn-secondary" onclick="cancelStudentEdit()">বাতিল</button>
+          </div>
+        </div>`;
+    } else {
+      html += `
+        <div class="student-card" style="border-left:4px solid ${col.badge}">
+          <div class="student-top">
+            <div class="student-info">
+              <div class="roll-badge">রোল: ${s.roll||'?'}</div>
+              <div class="name">${s.name}</div>
+              <div class="father">পিতা: ${s.father}</div>
+              <div class="phone-num">${s.phone}</div>
+            </div>
+            <div class="call-wrap">
+              <a href="tel:${s.phone}" class="call-btn">📞</a>
+            </div>
+          </div>
+          <div class="student-actions">
+            <button class="edit-btn" onclick="startStudentEdit('${s.id}')">✏️ সম্পাদনা</button>
+            <button class="del-btn" onclick="deleteStudent('${s.id}','${s.name.replace(/'/g,"\\'")}')">🗑️ মুছুন</button>
+          </div>
+        </div>`;
+    }
+  });
+
+  if (addingStudent) {
+    html += `
+      <div class="add-card">
+        <div class="add-title">নতুন শিক্ষার্থী</div>
+        <div class="form-label">রোল নম্বর</div>
+        <input class="form-input" id="aRoll" type="number" placeholder="রোল নম্বর" />
+        <div class="form-label">শিক্ষার্থীর নাম</div>
+        <input class="form-input" id="aName" placeholder="শিক্ষার্থীর নাম" />
+        <div class="form-label">বাবার নাম</div>
+        <input class="form-input" id="aFather" placeholder="বাবার নাম" />
+        <div class="form-label">ফোন নাম্বার</div>
+        <input class="form-input" id="aPhone" type="tel" placeholder="ফোন নাম্বার" />
+        <div class="btn-row">
+          <button class="btn-primary" onclick="addStudent()">যোগ করুন</button>
+          <button class="btn-secondary" onclick="cancelAddStudent()">বাতিল</button>
+        </div>
+      </div>`;
+  } else {
+    html += `<button class="add-student-trigger" onclick="showAddStudent()">+ নতুন শিক্ষার্থী যোগ করুন</button>`;
+  }
+
+  document.getElementById("studentPage").innerHTML = html;
+}
+
+function startStudentEdit(id) { requirePassword(() => { editingStudentId = id; addingStudent = false; renderStudentPage(); }); }
+function cancelStudentEdit() { editingStudentId = null; renderStudentPage(); }
+function saveStudent(id) {
+  const roll = String(parseInt(document.getElementById("eRoll").value)||9999);
+  const name = document.getElementById("eName").value.trim();
+  const father = document.getElementById("eFather").value.trim();
+  const phone = document.getElementById("ePhone").value.trim();
+  const newClass = document.getElementById("eClass").value;
+  if (!name) return;
+  db.collection("students").doc(id).update({ roll, name, father, phone, className: newClass })
+    .then(() => {
+      editingStudentId = null;
+      currentClass = newClass;
+      renderStudentPage();
+    })
+    .catch(e => alert("সমস্যা: " + e.message));
+}
+function deleteStudent(id, name) {
+  requirePassword(() => {
+    if (!confirm(name + " কে মুছে ফেলবেন?")) return;
+    db.collection("students").doc(id).delete().catch(e => alert("সমস্যা: " + e.message));
+  });
+}
+function showAddStudent() { requirePassword(() => { addingStudent = true; editingStudentId = null; renderStudentPage(); }); }
+function cancelAddStudent() { addingStudent = false; renderStudentPage(); }
+function addStudent() {
+  const name = document.getElementById("aName").value.trim();
+  if (!name) { alert("নাম দিন!"); return; }
+  db.collection("students").add({
+    roll: String(parseInt(document.getElementById("aRoll").value)||9999),
+    name,
+    father: document.getElementById("aFather").value.trim(),
+    phone: document.getElementById("aPhone").value.trim(),
+    className: currentClass
+  }).then(() => {
+    addingStudent = false;
+    renderStudentPage();
+  }).catch(e => alert("সমস্যা: " + e.message));
+}
+
+// ============ TEACHER PAGE ============
+function openTeacherPage() {
+  currentPage = 'teacher'; editingTeacherId = null; addingTeacher = false;
+  document.getElementById("homePage").classList.add("hidden");
+  document.getElementById("teacherPage").classList.remove("hidden");
+  history.pushState({ page:'teacher' }, '');
+  updateSubtitle();
+  renderTeacherPage();
+}
+
+function renderTeacherPage() {
+  const headTeachers = allTeachers.filter(t => isHeadTeacher(t.designation)).sort((a,b)=>(a.serial||99)-(b.serial||99));
+  const actingHeads = allTeachers.filter(t => isActingHead(t.designation)).sort((a,b)=>(a.serial||99)-(b.serial||99));
+  const assistants = allTeachers.filter(t => t.designation === "সহকারী শিক্ষক").sort((a,b)=>(a.serial||99)-(b.serial||99));
+  const canAdd = allTeachers.length < MAX_TEACHERS;
+
+  let html = `
+    <div class="back-row">
+      <button class="back-btn" onclick="goBackHome()">‹ ফিরে যান</button>
+      <div style="flex:1;">
+        <div class="back-title">শিক্ষক তালিকা</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+          <span class="back-sub">${allTeachers.length} / ${MAX_TEACHERS} জন</span>
+          <button onclick="changeMaxTeachers()" style="background:none;border:none;cursor:pointer;font-size:13px;color:#64748B;padding:0;line-height:1;" title="সর্বোচ্চ সংখ্যা পরিবর্তন">⚙️</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider">প্রধান শিক্ষক</div>`;
+
+  // Head teacher section
+  if (headTeachers.length === 0) {
+    html += `<div class="vacant-box">⚠️ প্রধান শিক্ষক পদটি শূন্য</div>`;
+  } else {
+    headTeachers.forEach(t => {
+      html += renderTeacherCard(t, '#0D2561');
+    });
+  }
+
+  // Acting head shown under head section
+  if (actingHeads.length > 0) {
+    actingHeads.forEach(t => {
+      html += renderTeacherCard({ ...t, designation: 'প্রধান শিক্ষক (ভারপ্রাপ্ত)' }, '#7C3AED');
+    });
+  }
+
+  // Assistant teachers
+  html += `<div class="section-divider">সহকারী শিক্ষক</div>`;
+
+  if (actingHeads.length === 0 && assistants.length === 0) {
+    html += `<div class="no-result">কোনো সহকারী শিক্ষক নেই</div>`;
+  }
+
+  // Acting head shown at top of assistants too
+  actingHeads.forEach(t => {
+    html += renderTeacherCard({ ...t, designation: 'সহকারী শিক্ষক' }, '#7C3AED');
+  });
+
+  assistants.forEach(t => {
+    html += renderTeacherCard(t, '#1440A0');
+  });
+
+  // Add teacher button
+  if (canAdd && !addingTeacher) {
+    html += `<button class="add-student-trigger" onclick="showAddTeacher()">+ নতুন শিক্ষক যোগ করুন</button>`;
+  } else if (addingTeacher) {
+    html += `
+      <div class="add-card">
+        <div class="add-title">নতুন শিক্ষক</div>
+        <div class="form-label">সিরিয়াল নম্বর</div>
+        <input class="form-input" id="atSerial" type="number" placeholder="সিরিয়াল (যেমন: ১, ২, ৩)" />
+        <div class="form-label">শিক্ষকের নাম</div>
+        <input class="form-input" id="atName" placeholder="শিক্ষকের নাম" />
+        <div class="form-label">পদবী</div>
+        <select class="form-input class-select" id="atDesig">
+          ${DESIGNATIONS.map(d=>`<option value="${d}">${d}</option>`).join('')}
+        </select>
+        <div class="form-label">ফোন নাম্বার</div>
+        <input class="form-input" id="atPhone" type="tel" placeholder="ফোন নাম্বার" />
+        <div class="btn-row">
+          <button class="btn-primary" onclick="addTeacher()">যোগ করুন</button>
+          <button class="btn-secondary" onclick="cancelAddTeacher()">বাতিল</button>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById("teacherPage").innerHTML = html;
+}
+
+function renderTeacherCard(t, borderColor) {
+  if (editingTeacherId === t.id) {
+    return `
+      <div class="edit-card">
+        <div class="edit-title">✏️ শিক্ষকের তথ্য সম্পাদনা</div>
+        <div class="form-label">সিরিয়াল নম্বর</div>
+        <input class="form-input" id="etSerial" type="number" value="${allTeachers.find(x=>x.id===t.id)?.serial||''}" placeholder="সিরিয়াল (যেমন: ১, ২, ৩)" />
+        <div class="form-label">শিক্ষকের নাম</div>
+        <input class="form-input" id="etName" value="${t.name}" placeholder="শিক্ষকের নাম" />
+        <div class="form-label">পদবী</div>
+        <select class="form-input class-select" id="etDesig">
+          ${DESIGNATIONS.map(d=>`<option value="${d}" ${allTeachers.find(x=>x.id===t.id)?.designation===d?'selected':''}>${d}</option>`).join('')}
+        </select>
+        <div class="form-label">ফোন নাম্বার</div>
+        <input class="form-input" id="etPhone" type="tel" value="${t.phone}" placeholder="ফোন নাম্বার" />
+        <div class="btn-row">
+          <button class="btn-primary" onclick="saveTeacher('${t.id}')">সেভ করুন</button>
+          <button class="btn-secondary" onclick="cancelTeacherEdit()">বাতিল</button>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="student-card" style="border-left:4px solid ${borderColor}">
+      <div class="student-top">
+        <div class="student-info">
+          <div class="name">${t.name}</div>
+          <div class="father">${t.designation}</div>
+          <div class="phone-num">${t.phone}</div>
+        </div>
+        <div class="call-wrap">
+          <a href="tel:${t.phone}" class="call-btn">📞</a>
+        </div>
+      </div>
+      <div class="student-actions">
+        <button class="edit-btn" onclick="startTeacherEdit('${t.id}')">✏️ সম্পাদনা</button>
+        <button class="del-btn" onclick="deleteTeacher('${t.id}','${t.name.replace(/'/g,"\\'")}')">🗑️ মুছুন</button>
+      </div>
+    </div>`;
+}
+
+function startTeacherEdit(id) { requirePassword(() => { editingTeacherId = id; addingTeacher = false; renderTeacherPage(); }); }
+function cancelTeacherEdit() { editingTeacherId = null; renderTeacherPage(); }
+function saveTeacher(id) {
+  const name = document.getElementById("etName").value.trim();
+  const designation = document.getElementById("etDesig").value;
+  const serial = parseInt(document.getElementById("etSerial").value) || 99;
+  const phone = document.getElementById("etPhone").value.trim();
+  if (!name) return;
+  db.collection("teachers").doc(id).update({ name, designation, serial, phone })
+    .then(() => {
+      editingTeacherId = null;
+      renderTeacherPage();
+    })
+    .catch(e => alert("সমস্যা: " + e.message));
+}
+function deleteTeacher(id, name) {
+  requirePassword(() => {
+    if (!confirm(name + " কে মুছে ফেলবেন?")) return;
+    db.collection("teachers").doc(id).delete().catch(e => alert("সমস্যা: " + e.message));
+  });
+}
+function showAddTeacher() { requirePassword(() => { addingTeacher = true; editingTeacherId = null; renderTeacherPage(); }); }
+function cancelAddTeacher() { addingTeacher = false; renderTeacherPage(); }
+function addTeacher() {
+  const name = document.getElementById("atName").value.trim();
+  if (!name) { alert("নাম দিন!"); return; }
+  db.collection("teachers").add({
+    name,
+    designation: document.getElementById("atDesig").value,
+    serial: parseInt(document.getElementById("atSerial").value) || 99,
+    phone: document.getElementById("atPhone").value.trim()
+  }).then(() => {
+    addingTeacher = false;
+    renderTeacherPage();
+  }).catch(e => alert("সমস্যা: " + e.message));
+}
+
+// ============ SEARCH ============
+function onSearch() {
+  const q = document.getElementById("searchInput").value.trim();
+  document.getElementById("clearBtn").classList.toggle("hidden", !q);
+  const searchDiv = document.getElementById("searchResults");
+
+  if (q) {
+    document.getElementById("homePage").classList.add("hidden");
+    document.getElementById("studentPage").classList.add("hidden");
+    document.getElementById("teacherPage").classList.add("hidden");
+    searchDiv.classList.remove("hidden");
+
+    const sResults = allStudents.filter(s =>
+      (s.name||'').includes(q) || (s.phone||'').includes(q)
+    );
+    const tResults = allTeachers.filter(t =>
+      (t.name||'').includes(q) || (t.phone||'').includes(q)
+    );
+
+    if (!sResults.length && !tResults.length) {
+      searchDiv.innerHTML = `<div class="no-result">কোনো ফলাফল পাওয়া যায়নি</div>`;
+      return;
+    }
+
+    let html = `<div class="result-count">${sResults.length + tResults.length}টি ফলাফল</div>`;
+
+    if (tResults.length) {
+      html += `<div class="section-divider">শিক্ষক</div>`;
+      tResults.forEach(t => {
+        html += `
+          <div class="student-card" style="border-left:4px solid #1440A0">
+            <div class="student-top">
+              <div class="student-info">
+                <div class="name">${t.name}</div>
+                <div class="father">${t.designation}</div>
+                <div class="phone-num">${t.phone}</div>
+              </div>
+              <div class="call-wrap"><a href="tel:${t.phone}" class="call-btn">📞</a></div>
+            </div>
+          </div>`;
+      });
+    }
+
+    if (sResults.length) {
+      html += `<div class="section-divider">শিক্ষার্থী</div>`;
+      sResults.forEach(s => {
+        const col = classColors[s.className]||{badge:"#475569"};
+        html += `
+          <div class="student-card" style="border-left:4px solid ${col.badge}">
+            <div class="student-top">
+              <div class="student-info">
+                <div class="roll-badge">রোল: ${s.roll||'?'}</div>
+                <div class="name">${s.name}</div>
+                <div class="father">পিতা: ${s.father}</div>
+                <div class="phone-num">${s.phone}</div>
+                <span class="badge" style="background:${col.badge}18;color:${col.badge}">${s.className}</span>
+              </div>
+              <div class="call-wrap"><a href="tel:${s.phone}" class="call-btn">📞</a></div>
+            </div>
+          </div>`;
+      });
+    }
+
+    searchDiv.innerHTML = html;
+  } else {
+    clearSearch();
+  }
+}
+
+function clearSearch() {
+  document.getElementById("searchInput").value = "";
+  document.getElementById("clearBtn").classList.add("hidden");
+  document.getElementById("searchResults").classList.add("hidden");
+  document.getElementById("searchResults").innerHTML = "";
+  document.getElementById("homePage").classList.remove("hidden");
+  if (currentPage === 'student') document.getElementById("studentPage").classList.remove("hidden");
+  else if (currentPage === 'teacher') document.getElementById("teacherPage").classList.remove("hidden");
+  else { document.getElementById("studentPage").classList.add("hidden"); document.getElementById("teacherPage").classList.add("hidden"); }
+}
+
+// ============ MAX TEACHERS ============
+function changeMaxTeachers() {
+  document.getElementById("maxTeacherPw").value = "";
+  document.getElementById("maxTeacherInput").value = MAX_TEACHERS;
+  document.getElementById("maxTeacherError").textContent = "";
+  document.getElementById("maxTeacherModal").classList.add("active");
+}
+function saveMaxTeachers() {
+  const pw = document.getElementById("maxTeacherPw").value;
+  const val = parseInt(document.getElementById("maxTeacherInput").value);
+  const err = document.getElementById("maxTeacherError");
+  if (pw !== MASTER_PASSWORD) { err.textContent = "ভুল মাস্টার পাসওয়ার্ড!"; return; }
+  if (!val || val < 1) { err.textContent = "সঠিক সংখ্যা দিন!"; return; }
+  if (val < allTeachers.length) { err.textContent = "বর্তমানে " + allTeachers.length + " জন শিক্ষক আছেন!"; return; }
+  MAX_TEACHERS = val;
+  localStorage.setItem("maxTeachers", val);
+  document.getElementById("maxTeacherModal").classList.remove("active");
+  updateSubtitle();
+  renderTeacherPage();
+  alert("✅ সর্বোচ্চ শিক্ষক সংখ্যা পরিবর্তন হয়েছে!");
+}
+
+// ============ SETTINGS CLICK ============
+function handleSettingsClick() {
+  if (!document.getElementById("developerPage").classList.contains("hidden")) {
+    document.getElementById("oldMasterPw").value = "";
+    document.getElementById("newMasterPw").value = "";
+    document.getElementById("confirmMasterPw").value = "";
+    document.getElementById("masterPwError").textContent = "";
+    document.getElementById("masterPwModal").classList.add("active");
+  } else {
+    openChangePassword();
+  }
+}
+
+function saveMasterPassword() {
+  const oldPw = document.getElementById("oldMasterPw").value;
+  const newPw = document.getElementById("newMasterPw").value;
+  const confirmPw = document.getElementById("confirmMasterPw").value;
+  const err = document.getElementById("masterPwError");
+  if (oldPw !== MASTER_PASSWORD) { err.textContent = "পুরনো মাস্টার পাসওয়ার্ড ভুল!"; return; }
+  if (newPw.length < 4) { err.textContent = "কমপক্ষে ৪ অক্ষর হতে হবে!"; return; }
+  if (newPw !== confirmPw) { err.textContent = "পাসওয়ার্ড মিলছে না!"; return; }
+  db.collection("settings").doc("passwords").update({ masterPassword: newPw })
+    .then(() => {
+      MASTER_PASSWORD = newPw;
+      document.getElementById("masterPwModal").classList.remove("active");
+      const now = new Date();
+      const timeStr = now.toLocaleDateString('bn-BD') + ' ' + now.toLocaleTimeString('bn-BD');
+      emailjs.send('service_tsu2ctq', 'template_avy0eu4', {
+        new_password: newPw,
+        time: timeStr,
+        school_name: schoolName
+      }).then(() => {
+        alert("✅ মাস্টার পাসওয়ার্ড পরিবর্তন হয়েছে! ইমেইল নোটিফিকেশন পাঠানো হয়েছে।");
+      }).catch(() => {
+        alert("✅ মাস্টার পাসওয়ার্ড পরিবর্তন হয়েছে! (ইমেইল পাঠানো সম্ভব হয়নি)");
+      });
+    }).catch(e => alert("সমস্যা: " + e.message));
+}
+
+// ============ PASSWORD ============
+function requirePassword(action) {
+  pendingAction = action;
+  document.getElementById("pwInput").value = "";
+  document.getElementById("pwError").textContent = "";
+  document.getElementById("pwModal").classList.add("active");
+  setTimeout(() => document.getElementById("pwInput").focus(), 100);
+}
+function confirmPassword() {
+  const val = document.getElementById("pwInput").value;
+  if (!passwordsLoaded) { document.getElementById("pwError").textContent = "একটু অপেক্ষা করুন..."; return; }
+  if (val === savedPassword || val === MASTER_PASSWORD) {
+    document.getElementById("pwModal").classList.remove("active");
+    if (pendingAction) { pendingAction(); pendingAction = null; }
+  } else {
+    document.getElementById("pwError").textContent = "ভুল পাসওয়ার্ড!";
+  }
+}
+function closeModal() { document.getElementById("pwModal").classList.remove("active"); pendingAction = null; }
+function openChangePassword() {
+  document.getElementById("oldPw").value = "";
+  document.getElementById("newPw").value = "";
+  document.getElementById("confirmPw").value = "";
+  document.getElementById("changePwError").textContent = "";
+  document.getElementById("changePwModal").classList.add("active");
+}
+function doChangePassword() {
+  const old = document.getElementById("oldPw").value;
+  const nw = document.getElementById("newPw").value;
+  const cf = document.getElementById("confirmPw").value;
+  const err = document.getElementById("changePwError");
+  if (old !== savedPassword && old !== MASTER_PASSWORD) { err.textContent = "পুরনো পাসওয়ার্ড ভুল!"; return; }
+  if (nw.length < 4) { err.textContent = "কমপক্ষে ৪ অক্ষর হতে হবে!"; return; }
+  if (nw !== cf) { err.textContent = "পাসওয়ার্ড মিলছে না!"; return; }
+  db.collection("settings").doc("passwords").update({ userPassword: nw })
+    .then(() => {
+      savedPassword = nw;
+      document.getElementById("changePwModal").classList.remove("active");
+      alert("✅ পাসওয়ার্ড পরিবর্তন হয়েছে!");
+    }).catch(e => alert("সমস্যা: " + e.message));
+}
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && document.getElementById("pwModal").classList.contains("active")) confirmPassword();
+});
+
+// ============ BACK BUTTON ============
+window.addEventListener('popstate', function() {
+  if (!document.getElementById("developerPage").classList.contains("hidden")) {
+    closeDeveloperPage(); return;
+  }
+  if (currentPage !== 'home') { goBackHome(); }
+});
+
+// ============ INIT (Firebase) ============
+updateSchoolNameDisplay();
+loadPasswords();
+// Load students from Firestore
+db.collection("students").onSnapshot(snap => {
+  allStudents = snap.docs.map(d => ({ id: d.id, ...d.data(), roll: parseInt(d.data().roll)||9999 }));
+  if (currentPage === 'home') { renderHome(); updateSubtitle(); }
+  else if (currentPage === 'student') { renderHome(); renderStudentPage(); }
+});
+// Load teachers from Firestore
+db.collection("teachers").onSnapshot(snap => {
+  allTeachers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (currentPage === 'home') { renderHome(); updateSubtitle(); }
+  else if (currentPage === 'teacher') { renderHome(); updateSubtitle(); renderTeacherPage(); }
+});
+</script>
+
+<!-- CODE PROTECTION -->
+<script>
+(function(){
+  // Right click disable
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+
+  // F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S বন্ধ
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'F12') { e.preventDefault(); return false; }
+    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) { e.preventDefault(); return false; }
+    if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.key === 'S' || e.key === 's')) { e.preventDefault(); return false; }
+  });
+
+  // DevTools খুললে blank
+  let devOpen = false;
+  const threshold = 160;
+  setInterval(function(){
+    if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
+      if (!devOpen) {
+        devOpen = true;
+        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#64748B;font-size:16px;">🔒 অননুমোদিত অ্যাক্সেস</div>';
+      }
+    } else {
+      devOpen = false;
+    }
+  }, 1000);
+})();
+</script>
+
+</body>
+</html>
