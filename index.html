@@ -524,6 +524,7 @@ function saveSchoolName() {
 
 // ============ SETTINGS PAGE (centralized master-password settings) ============
 function openSettingsPage() {
+  currentPage = 'settings';
   document.getElementById("developerPage").classList.add("hidden");
   document.getElementById("settingsPage").classList.remove("hidden");
   history.pushState({ page:"settings" }, "");
