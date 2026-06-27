@@ -470,7 +470,13 @@ function loadPasswords() {
 function loadSubjects() {
   db.collection("settings").doc("subjects").onSnapshot(doc => {
     if (doc.exists) {
-      classSubjects = doc.data() || {};
+      const raw = doc.data() || {};
+      // JSON string হিসেবে সেভ থাকলে parse করো
+      if (raw.__json) {
+        try { classSubjects = JSON.parse(raw.__json); } catch(e) { classSubjects = {}; }
+      } else {
+        classSubjects = raw;
+      }
       // যে পেজে আছি সেটা রিফ্রেশ করো
       if (currentPage === 'home') renderHome();
       else if (currentPage === 'student') renderStudentPage();
@@ -482,7 +488,9 @@ function loadSubjects() {
 }
 
 function saveSubjects() {
-  db.collection("settings").doc("subjects").set(classSubjects).catch(e => alert("সমস্যা: " + e.message));
+  // JSON string হিসেবে সেভ করো যাতে nested array সঠিকভাবে সেভ হয়
+  db.collection("settings").doc("subjects").set({ __json: JSON.stringify(classSubjects) })
+    .catch(e => alert("সমস্যা: " + e.message));
 }
 
 // ============ SCHOOL NAME ============
