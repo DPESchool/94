@@ -468,9 +468,17 @@ function loadPasswords() {
 }
 
 function loadSubjects() {
-  db.collection("settings").doc("subjects").get().then(doc => {
-    if (doc.exists) classSubjects = doc.data() || {};
-  }).catch(()=>{});
+  db.collection("settings").doc("subjects").onSnapshot(doc => {
+    if (doc.exists) {
+      classSubjects = doc.data() || {};
+      // যে পেজে আছি সেটা রিফ্রেশ করো
+      if (currentPage === 'home') renderHome();
+      else if (currentPage === 'student') renderStudentPage();
+      else if (currentPage === 'studentResult') renderStudentResultPage();
+      else if (currentPage === 'subjectSetup') renderSubjectSetupPage();
+      else if (currentPage === 'settings') renderSettingsSubjectClassList && renderSettingsSubjectClassList();
+    }
+  }, ()=>{});
 }
 
 function saveSubjects() {
@@ -1237,7 +1245,7 @@ function exportClassResultSheet() {
       <button onclick="window.print()" style="background:#0D2561;color:white;border:none;padding:10px 28px;border-radius:8px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;">🖨️ Print / PDF সেভ করুন</button>
     </div>
     <div class="header">
-      <h1>পশ্চিম চরলাঠিমারা সরকারি প্রাথমিক বিদ্যালয়</h1>
+      <h1>${schoolName}</h1>
       <h2>পাথরঘাটা, বরগুনা</h2>
     </div>
     <div class="meta">
