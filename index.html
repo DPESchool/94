@@ -953,7 +953,7 @@ function exportStudentPDF() {
     const total = calcTotal(examData, subjects);
     examRows += `<div class="pr-exam-title">${EXAM_LABELS[exam]}</div>
       <table class="pr-table"><thead><tr><th>বিষয়</th><th>পূর্ণমান</th><th>প্রাপ্ত নম্বর</th></tr></thead><tbody>
-      ${subjects.map(sub => { const m = examData[sub.name]; return \`<tr><td>\${sub.name}</td><td>\${sub.total}</td><td>\${m!==undefined&&m!==''?m:'—'}</td></tr>\`; }).join('')}
+      ${subjects.map(sub => { const m = examData[sub.name]; return `<tr><td>${sub.name}</td><td>${sub.total}</td><td>${m!==undefined&&m!==''?m:'—'}</td></tr>`; }).join('')}
       <tr class="pr-total"><td><b>মোট</b></td><td><b>${maxTotal}</b></td><td><b>${total!==null?total:'—'}</b></td></tr>
       </tbody></table>`;
   });
@@ -985,7 +985,7 @@ function exportStudentPDF() {
   </div>
   ${examRows}
   <div class="pr-footer"><span>তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span><span>স্বাক্ষর: _______________</span></div>
-  </body></html>\`);
+  </body></html>`);
   win.document.close();
 }
 
@@ -1143,7 +1143,7 @@ function exportClassResultSheet() {
     <div><div class="footer-sign">প্রধান শিক্ষকের স্বাক্ষর ও সীলমোহর</div></div>
     <div><div class="footer-sign">তারিখ:</div></div>
   </div>
-  </body></html>\`);
+  </body></html>`);
   win.document.close();
 }
 
