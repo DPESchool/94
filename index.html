@@ -1526,6 +1526,7 @@ document.addEventListener("keydown", e => {
 updateSchoolNameDisplay();
 loadPasswords();
 loadSubjects();
+renderHome(); // প্রথমবার খালি হলেও শ্রেণী বোতাম দেখাবে
 
 db.collection("students").onSnapshot(snap => {
   allStudents = snap.docs.map(d => ({ id:d.id, ...d.data(), roll:parseInt(d.data().roll)||9999 }));
