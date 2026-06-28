@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
@@ -471,30 +472,28 @@ function loadSubjects() {
   db.collection("settings").doc("subjects").onSnapshot(doc => {
     if (doc.exists) {
       const raw = doc.data() || {};
-      // JSON string হিসেবে সেভ থাকলে parse করো
-      if (raw.__json) {
-        try { classSubjects = JSON.parse(raw.__json); } catch(e) { classSubjects = {}; }
-      } else {
-        classSubjects = raw;
-      }
-      // যে পেজে আছি সেটা রিফ্রেশ করো
+      classSubjects = raw.__json ? (JSON.parse(raw.__json) || {}) : raw;
       if (currentPage === 'home') renderHome();
       else if (currentPage === 'student') renderStudentPage();
       else if (currentPage === 'studentResult') renderStudentResultPage();
       else if (currentPage === 'subjectSetup') renderSubjectSetupPage();
-      else if (currentPage === 'settings') renderSettingsSubjectClassList && renderSettingsSubjectClassList();
+      else if (currentPage === 'settings') renderSettingsSubjectClassList();
     }
-  }, ()=>{});
+  }, () => {});
 }
 
 function saveSubjects() {
-  // JSON string হিসেবে সেভ করো যাতে nested array সঠিকভাবে সেভ হয়
-  db.collection("settings").doc("subjects").set({ __json: JSON.stringify(classSubjects) })
+  db.collection("settings").doc("subjects")
+    .set({ __json: JSON.stringify(classSubjects) })
     .catch(e => alert("সমস্যা: " + e.message));
 }
 
 // ============ SCHOOL NAME ============
 let schoolName = localStorage.getItem("schoolName") || "আপনার স্কুলের নাম লিখুন";
+if (schoolName === "পশ্চিম চরলাঠিমারা সরকারি প্রাথমিক বিদ্যালয়" || schoolName === "আপনার স্কুলের নাম লিখুন") {
+  schoolName = "৯৪ নং পশ্চিম চরলাঠিমারা";
+  localStorage.setItem("schoolName", schoolName);
+}
 function updateSchoolNameDisplay() {
   const el = document.getElementById("schoolNameDisplay");
   if (el) el.textContent = schoolName;
@@ -947,72 +946,46 @@ function exportStudentPDF() {
   const subjects = getSubjects(currentClass);
   const sResults = getStudentResults(currentStudentId);
   const maxTotal = subjects.reduce((a,b) => a+(Number(b.total)||0), 0);
-
   let examRows = '';
   EXAMS.forEach(exam => {
     if (!hasExamData(currentStudentId, exam)) return;
     const examData = sResults[exam] || {};
     const total = calcTotal(examData, subjects);
-    examRows += `
-      <div class="pr-exam-title">${EXAM_LABELS[exam]}</div>
-      <table class="pr-table">
-        <thead><tr><th>বিষয়</th><th>পূর্ণমান</th><th>প্রাপ্ত নম্বর</th></tr></thead>
-        <tbody>
-          ${subjects.map(sub => {
-            const m = examData[sub.name];
-            return `<tr><td>${sub.name}</td><td>${sub.total}</td><td>${m !== undefined && m !== '' ? m : '—'}</td></tr>`;
-          }).join('')}
-          <tr class="pr-total"><td><b>মোট</b></td><td><b>${maxTotal}</b></td><td><b>${total !== null ? total : '—'}</b></td></tr>
-        </tbody>
-      </table>`;
+    examRows += `<div class="pr-exam-title">${EXAM_LABELS[exam]}</div>
+      <table class="pr-table"><thead><tr><th>বিষয়</th><th>পূর্ণমান</th><th>প্রাপ্ত নম্বর</th></tr></thead><tbody>
+      ${subjects.map(sub => { const m = examData[sub.name]; return \`<tr><td>\${sub.name}</td><td>\${sub.total}</td><td>\${m!==undefined&&m!==''?m:'—'}</td></tr>\`; }).join('')}
+      <tr class="pr-total"><td><b>মোট</b></td><td><b>${maxTotal}</b></td><td><b>${total!==null?total:'—'}</b></td></tr>
+      </tbody></table>`;
   });
-
-  const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="bn"><head>
-    <meta charset="UTF-8">
-    <title>${s.name} - ফলাফল</title>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&display=swap');
-      *{margin:0;padding:0;box-sizing:border-box;}
-      body{font-family:'Hind Siliguri',sans-serif;padding:20px;color:#1E293B;font-size:13px;}
-      .pr-header{text-align:center;border-bottom:2px solid #0D2561;padding-bottom:12px;margin-bottom:16px;}
-      .pr-header h1{font-size:18px;font-weight:800;color:#0D2561;}
-      .pr-header h2{font-size:13px;color:#475569;margin-top:4px;}
-      .pr-info{background:#F0F4F8;border-radius:8px;padding:12px;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-      .pr-info-row{font-size:13px;color:#374151;}<br>
-      .pr-info-row span{font-weight:700;color:#0D2561;}
-      .pr-exam-title{font-size:14px;font-weight:800;color:#0D2561;margin:14px 0 6px;padding:6px 10px;background:#EEF2FF;border-radius:6px;}
-      .pr-table{width:100%;border-collapse:collapse;margin-bottom:8px;}
-      .pr-table th{background:#0D2561;color:white;padding:7px 10px;text-align:left;font-size:12px;}
-      .pr-table td{padding:6px 10px;border-bottom:1px solid #E2E8F0;font-size:13px;}
-      .pr-table tr:nth-child(even) td{background:#F8FAFC;}
-      .pr-total td{background:#EEF2FF!important;font-weight:700;color:#0D2561;}
-      .pr-footer{margin-top:30px;display:flex;justify-content:space-between;font-size:12px;color:#64748B;}
-      @media print{
-        body{padding:10px;}
-        .no-print{display:none!important;}
-      }
-    </style>
-  </head><body>
-    <div class="no-print" style="text-align:center;margin-bottom:16px;">
-      <button onclick="window.print()" style="background:#0D2561;color:white;border:none;padding:10px 28px;border-radius:8px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;">🖨️ Print / PDF সেভ করুন</button>
-    </div>
-    <div class="pr-header">
-      <h1>${schoolName}</h1>
-      <h2>শিক্ষার্থী ফলাফল কার্ড</h2>
-    </div>
-    <div class="pr-info">
-      <div class="pr-info-row">নাম: <span>${s.name}</span></div>
-      <div class="pr-info-row">রোল: <span>${s.roll||'?'}</span></div>
-      <div class="pr-info-row">পিতা: <span>${s.father||''}</span></div>
-      <div class="pr-info-row">শ্রেণী: <span>${currentClass}</span></div>
-    </div>
-    ${examRows}
-    <div class="pr-footer">
-      <span>তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
-      <span>স্বাক্ষর: _______________</span>
-    </div>
-  </body></html>`);
+  const win = window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>${s.name} - ফলাফল</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Hind Siliguri',sans-serif;padding:20px;color:#1E293B;font-size:13px;}
+  .pr-header{text-align:center;border-bottom:2px solid #0D2561;padding-bottom:12px;margin-bottom:16px;}
+  .pr-header h1{font-size:18px;font-weight:800;color:#0D2561;}.pr-header h2{font-size:13px;color:#475569;margin-top:4px;}
+  .pr-info{background:#F0F4F8;border-radius:8px;padding:12px;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .pr-info-row{font-size:13px;color:#374151;}.pr-info-row span{font-weight:700;color:#0D2561;}
+  .pr-exam-title{font-size:14px;font-weight:800;color:#0D2561;margin:14px 0 6px;padding:6px 10px;background:#EEF2FF;border-radius:6px;}
+  .pr-table{width:100%;border-collapse:collapse;margin-bottom:8px;}
+  .pr-table th{background:#0D2561;color:white;padding:7px 10px;text-align:left;font-size:12px;}
+  .pr-table td{padding:6px 10px;border-bottom:1px solid #E2E8F0;font-size:13px;}
+  .pr-table tr:nth-child(even) td{background:#F8FAFC;}
+  .pr-total td{background:#EEF2FF!important;font-weight:700;color:#0D2561;}
+  .pr-footer{margin-top:30px;display:flex;justify-content:space-between;font-size:12px;color:#64748B;}
+  @media print{body{padding:10px;}.no-print{display:none!important;}}</style></head><body>
+  <div class="no-print" style="text-align:center;margin-bottom:16px;">
+    <button onclick="window.print()" style="background:#0D2561;color:white;border:none;padding:10px 28px;border-radius:8px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;">🖨️ Print / PDF সেভ করুন</button>
+  </div>
+  <div class="pr-header"><h1>${schoolName}</h1><h2>শিক্ষার্থী ফলাফল কার্ড</h2></div>
+  <div class="pr-info">
+    <div class="pr-info-row">নাম: <span>${s.name}</span></div>
+    <div class="pr-info-row">রোল: <span>${s.roll||'?'}</span></div>
+    <div class="pr-info-row">পিতা: <span>${s.father||''}</span></div>
+    <div class="pr-info-row">শ্রেণী: <span>${currentClass}</span></div>
+  </div>
+  ${examRows}
+  <div class="pr-footer"><span>তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span><span>স্বাক্ষর: _______________</span></div>
+  </body></html>\`);
   win.document.close();
 }
 
@@ -1087,211 +1060,90 @@ function switchMeritExam(exam) {
   renderMeritPage();
 }
 
-function exportMeritPDF() {
-  const students = studentsOfClass(currentClass);
-  const subjects = getSubjects(currentClass);
-  const maxTotal = subjects.reduce((a,b)=>a+(Number(b.total)||0),0);
-  const meritData = students.map(s => {
-    const examData = (allResults[s.id]||{})[currentMeritExam] || null;
-    const total = examData ? calcTotal(examData, subjects) : null;
-    return { ...s, total };
-  }).filter(s => s.total !== null).sort((a,b) => (b.total||0)-(a.total||0));
-
-  const rows = meritData.map((s, i) => {
-    const rank = i+1;
-    const medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
-    return `<tr>
-      <td style="text-align:center;font-weight:700;color:${rank<=3?'#D97706':'#374151'}">${medal} ${rank}</td>
-      <td style="text-align:center">${s.roll||'?'}</td>
-      <td>${s.name}</td>
-      <td style="text-align:center;font-weight:700;color:#1D4ED8">${s.total}</td>
-      <td style="text-align:center;color:#94A3B8">${maxTotal}</td>
-    </tr>`;
-  }).join('');
-
-  const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="bn"><head>
-    <meta charset="UTF-8">
-    <title>${currentClass} - মেধাতালিকা</title>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&display=swap');
-      *{margin:0;padding:0;box-sizing:border-box;}
-      body{font-family:'Hind Siliguri',sans-serif;padding:20px;color:#1E293B;font-size:13px;}
-      .pr-header{text-align:center;border-bottom:2px solid #0D2561;padding-bottom:12px;margin-bottom:16px;}
-      .pr-header h1{font-size:18px;font-weight:800;color:#0D2561;}
-      .pr-header h2{font-size:13px;color:#475569;margin-top:4px;}
-      .pr-meta{text-align:center;font-size:13px;color:#475569;margin-bottom:16px;}
-      table{width:100%;border-collapse:collapse;}
-      th{background:#0D2561;color:white;padding:8px 10px;font-size:12px;}
-      td{padding:7px 10px;border-bottom:1px solid #E2E8F0;font-size:13px;}
-      tr:nth-child(even) td{background:#F8FAFC;}
-      tr:nth-child(1) td{background:#FFFBEB;}
-      tr:nth-child(2) td{background:#F8FAFC;}
-      tr:nth-child(3) td{background:#FFF7ED;}
-      .pr-footer{margin-top:24px;display:flex;justify-content:space-between;font-size:12px;color:#64748B;}
-      @media print{.no-print{display:none!important;}}
-    </style>
-  </head><body>
-    <div class="no-print" style="text-align:center;margin-bottom:16px;">
-      <button onclick="window.print()" style="background:#0D2561;color:white;border:none;padding:10px 28px;border-radius:8px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;">🖨️ Print / PDF সেভ করুন</button>
-    </div>
-    <div class="pr-header">
-      <h1>${schoolName}</h1>
-      <h2>মেধাতালিকা</h2>
-    </div>
-    <div class="pr-meta">${currentClass} · ${EXAM_LABELS[currentMeritExam]} · মোট ${meritData.length} জন</div>
-    <table>
-      <thead><tr><th>মেধাক্রম</th><th>রোল</th><th>নাম</th><th>প্রাপ্ত নম্বর</th><th>পূর্ণমান</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div class="pr-footer">
-      <span>তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span>
-      <span>প্রধান শিক্ষকের স্বাক্ষর: _______________</span>
-    </div>
-  </body></html>`);
-  win.document.close();
-}
-
-// ============ CLASS RESULT SHEET ============
 function exportClassResultSheet() {
   const students = studentsOfClass(currentClass);
   const subjects = getSubjects(currentClass);
   const maxTotal = subjects.reduce((a,b) => a+(Number(b.total)||0), 0);
   const examLabel = EXAM_LABELS[currentMeritExam];
-
-  // Sort by roll
   const sorted = [...students].sort((a,b) => (parseInt(a.roll)||999)-(parseInt(b.roll)||999));
-
-  // Calculate merit ranks (only for those with results)
-  const withResults = sorted
-    .map(s => {
-      const examData = (allResults[s.id]||{})[currentMeritExam] || null;
-      const total = examData ? calcTotal(examData, subjects) : null;
-      return { ...s, examData, total };
-    })
-    .filter(s => s.total !== null)
-    .sort((a,b) => (b.total||0)-(a.total||0));
-
-  // Assign ranks
+  // rank map
+  const withResults = sorted.map(s => {
+    const ed = (allResults[s.id]||{})[currentMeritExam]||null;
+    const total = ed ? calcTotal(ed, subjects) : null;
+    return { ...s, total };
+  }).filter(s => s.total !== null).sort((a,b) => (b.total||0)-(a.total||0));
   const rankMap = {};
   withResults.forEach((s,i) => { rankMap[s.id] = i+1; });
-
-  // Build rows
   const rows = sorted.map(s => {
-    const examData = (allResults[s.id]||{})[currentMeritExam] || null;
-    const hasResult = examData && calcTotal(examData, subjects) !== null;
-    const total = hasResult ? calcTotal(examData, subjects) : null;
+    const ed = (allResults[s.id]||{})[currentMeritExam]||null;
+    const hasResult = ed && calcTotal(ed, subjects) !== null;
+    const total = hasResult ? calcTotal(ed, subjects) : null;
     const rank = rankMap[s.id] || null;
-
-    const subjectCells = subjects.map(sub => {
+    const subCells = subjects.map(sub => {
       if (!hasResult) return `<td style="color:#DC2626;font-weight:700;text-align:center;">A</td>`;
-      const m = examData[sub.name];
-      return `<td style="text-align:center;">${m !== undefined && m !== '' ? m : '—'}</td>`;
+      const m = ed[sub.name];
+      return `<td style="text-align:center;">${m!==undefined&&m!==''?m:'—'}</td>`;
     }).join('');
-
     const totalCell = hasResult
       ? `<td style="text-align:center;font-weight:700;color:#1D4ED8;">${total}</td>`
       : `<td style="color:#DC2626;font-weight:700;text-align:center;">A</td>`;
-
     const rankCell = rank
       ? `<td style="text-align:center;font-weight:700;">${rank}</td>`
       : `<td style="color:#DC2626;font-weight:700;text-align:center;">A</td>`;
-
-    return `<tr>
-      <td style="text-align:center;">${s.roll||'?'}</td>
-      <td>${s.name}</td>
-      ${subjectCells}
-      ${totalCell}
-      ${rankCell}
-    </tr>`;
+    return `<tr><td style="text-align:center;">${s.roll||'?'}</td><td>${s.name}</td>${subCells}${totalCell}${rankCell}</tr>`;
   }).join('');
-
-  const subjectHeaders = subjects.map(sub =>
-    `<th>${sub.name}<br><span style="font-weight:400;font-size:10px;">(${sub.total})</span></th>`
-  ).join('');
-
-  const presentCount = sorted.filter(s => {
-    const examData = (allResults[s.id]||{})[currentMeritExam] || null;
-    return examData && calcTotal(examData, subjects) !== null;
-  }).length;
+  const subHeaders = subjects.map(sub => `<th>${sub.name}<br><span style="font-weight:400;font-size:10px;">(${sub.total})</span></th>`).join('');
+  const presentCount = sorted.filter(s => { const ed=(allResults[s.id]||{})[currentMeritExam]||null; return ed&&calcTotal(ed,subjects)!==null; }).length;
   const absentCount = sorted.length - presentCount;
-  const currentYear = new Date().getFullYear();
-
-  const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="bn"><head>
-    <meta charset="UTF-8">
-    <title>${currentClass} - ${examLabel} - ফলাফল শীট</title>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&display=swap');
-      *{margin:0;padding:0;box-sizing:border-box;}
-      body{font-family:'Hind Siliguri',sans-serif;padding:20px;color:#1E293B;font-size:12px;}
-      .header{text-align:center;margin-bottom:16px;border-bottom:3px double #0D2561;padding-bottom:12px;}
-      .header h1{font-size:20px;font-weight:800;color:#0D2561;}
-      .header h2{font-size:13px;color:#374151;margin-top:3px;font-weight:600;}
-      .meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;background:#F0F4F8;padding:10px 14px;border-radius:8px;border:1px solid #CBD5E1;}
-      .meta-item{font-size:12px;color:#374151;}
-      .meta-item span{font-weight:700;color:#0D2561;}
-      .stat-row{display:flex;gap:16px;margin-bottom:14px;font-size:12px;color:#475569;}
-      .stat-row b{color:#0D2561;}
-      table{width:100%;border-collapse:collapse;font-size:12px;}
-      th{background:#0D2561;color:white;padding:7px 6px;text-align:center;font-size:11px;border:1px solid #1E3A8A;}
-      th:nth-child(2){text-align:left;}
-      td{padding:6px;border:1px solid #CBD5E1;vertical-align:middle;}
-      td:nth-child(2){font-weight:600;}
-      tr:nth-child(even) td{background:#F8FAFC;}
-      tr:hover td{background:#EFF6FF;}
-      .footer{margin-top:24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;font-size:12px;color:#374151;}
-      .footer-sign{border-top:1px solid #374151;padding-top:4px;margin-top:24px;}
-      .absent{color:#DC2626;font-weight:700;}
-      @media print{
-        .no-print{display:none!important;}
-        body{padding:10px;}
-        tr{page-break-inside:avoid;}
-      }
-    </style>
-  </head><body>
-    <div class="no-print" style="text-align:center;margin-bottom:16px;">
-      <button onclick="window.print()" style="background:#0D2561;color:white;border:none;padding:10px 28px;border-radius:8px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;">🖨️ Print / PDF সেভ করুন</button>
-    </div>
-    <div class="header">
-      <h1>${schoolName}</h1>
-      <h2>পাথরঘাটা, বরগুনা</h2>
-    </div>
-    <div class="meta">
-      <div class="meta-item">শ্রেণী: <span>${currentClass}</span></div>
-      <div class="meta-item">পরীক্ষা: <span>${examLabel}</span></div>
-      <div class="meta-item">শিক্ষাবর্ষ: <span>${currentYear}</span></div>
-      <div class="meta-item">পূর্ণমান: <span>${maxTotal}</span></div>
-      <div class="meta-item">মোট শিক্ষার্থী: <span>${sorted.length} জন</span></div>
-      <div class="meta-item">অনুপস্থিত: <span style="color:#DC2626;">${absentCount} জন</span></div>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th style="width:40px;">রোল</th>
-          <th style="text-align:left;min-width:120px;">নাম</th>
-          ${subjectHeaders}
-          <th>মোট<br><span style="font-weight:400;font-size:10px;">(${maxTotal})</span></th>
-          <th>মেধা<br>ক্রম</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div class="footer">
-      <div>
-        <div style="height:80px;"></div>
-        <div class="footer-sign">শ্রেণী শিক্ষকের স্বাক্ষর</div>
-      </div>
-      <div>
-        <div style="height:80px;"></div>
-        <div class="footer-sign">প্রধান শিক্ষকের স্বাক্ষর ও সীলমোহর</div>
-      </div>
-      <div>
-        <div style="height:80px;"></div>
-        <div class="footer-sign">তারিখ:</div>
-      </div>
-    </div>
-  </body></html>`);
+  const win = window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8">
+  <title>${currentClass} - ${examLabel}</title>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Hind Siliguri',sans-serif;padding:20px;color:#1E293B;font-size:12px;}
+  .header{text-align:center;margin-bottom:16px;border-bottom:3px double #0D2561;padding-bottom:12px;}
+  .header h1{font-size:20px;font-weight:800;color:#0D2561;}
+  .header h2{font-size:13px;color:#374151;margin-top:3px;font-weight:600;}
+  .meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;background:#F0F4F8;padding:10px 14px;border-radius:8px;border:1px solid #CBD5E1;}
+  .meta-item{font-size:12px;color:#374151;}.meta-item span{font-weight:700;color:#0D2561;}
+  table{width:100%;border-collapse:collapse;font-size:12px;}
+  th{background:#0D2561;color:white;padding:7px 6px;text-align:center;font-size:11px;border:1px solid #1E3A8A;}
+  th:nth-child(2){text-align:left;}
+  td{padding:6px;border:1px solid #CBD5E1;vertical-align:middle;}
+  td:nth-child(2){font-weight:600;}
+  tr:nth-child(even) td{background:#F8FAFC;}
+  .footer{margin-top:40px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;font-size:12px;}
+  .footer-sign{border-top:1px solid #374151;padding-top:4px;margin-top:80px;}
+  @media print{.no-print{display:none!important;}body{padding:10px;}}
+  </style></head><body>
+  <div class="no-print" style="text-align:center;margin-bottom:16px;">
+    <button onclick="window.print()" style="background:#0D2561;color:white;border:none;padding:10px 28px;border-radius:8px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:700;">🖨️ Print / PDF সেভ করুন</button>
+  </div>
+  <div class="header"><h1>${schoolName}</h1><h2>পাথরঘাটা, বরগুনা</h2></div>
+  <div class="meta">
+    <div class="meta-item">শ্রেণী: <span>${currentClass}</span></div>
+    <div class="meta-item">পরীক্ষা: <span>${examLabel}</span></div>
+    <div class="meta-item">শিক্ষাবর্ষ: <span>${new Date().getFullYear()}</span></div>
+    <div class="meta-item">পূর্ণমান: <span>${maxTotal}</span></div>
+    <div class="meta-item">মোট শিক্ষার্থী: <span>${sorted.length} জন</span></div>
+    <div class="meta-item">অনুপস্থিত: <span style="color:#DC2626;">${absentCount} জন</span></div>
+  </div>
+  <table>
+    <thead><tr>
+      <th style="width:40px;">রোল</th>
+      <th style="text-align:left;min-width:120px;">নাম</th>
+      ${subHeaders}
+      <th>মোট<br><span style="font-weight:400;font-size:10px;">(${maxTotal})</span></th>
+      <th>মেধা<br>ক্রম</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="footer">
+    <div><div class="footer-sign">শ্রেণী শিক্ষকের স্বাক্ষর</div></div>
+    <div><div class="footer-sign">প্রধান শিক্ষকের স্বাক্ষর ও সীলমোহর</div></div>
+    <div><div class="footer-sign">তারিখ:</div></div>
+  </div>
+  </body></html>\`);
   win.document.close();
 }
 
@@ -1670,6 +1522,10 @@ document.addEventListener("keydown", e => {
   if (e.key === "Enter" && document.getElementById("masterCheckInput")) confirmMasterCheck();
 });
 
+// ============ INIT ============
+updateSchoolNameDisplay();
+loadPasswords();
+loadSubjects();
 
 db.collection("students").onSnapshot(snap => {
   allStudents = snap.docs.map(d => ({ id:d.id, ...d.data(), roll:parseInt(d.data().roll)||9999 }));
