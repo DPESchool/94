@@ -8,11 +8,14 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="ডিজিটাল প্রাইমারি স্কুল: স্টুডেন্ট ও রেজাল্ট ম্যানেজমেন্ট সিস্টেম">
 <meta property="og:description" content="যেকোনো প্রাথমিক বিদ্যালয়ের শিক্ষার্থীদের তথ্য ও রেজাল্ট সহজে ম্যানেজ করার একটি আধুনিক ওয়েব অ্যাপ্লিকেশন।">
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://firestore.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;color:#1E293B;min-height:100vh;}
 
@@ -284,7 +287,7 @@ body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;
 
 <!-- SETTINGS PAGE -->
 <div id="settingsPage" class="hidden dev-page">
-  <div class="dev-header">
+  <div class="dev-header" style="background:linear-gradient(160deg,#0F3D2E 0%,#15803D 50%,#16A34A 100%);box-shadow:0 4px 16px rgba(15,61,46,0.4);">
     <button class="dev-back-btn" onclick="closeSettingsPage()">← ফিরে যান</button>
     <span class="dev-title">⚙️ সেটিংস</span>
   </div>
@@ -381,9 +384,6 @@ let savedPassword = '1234';
 let MASTER_PASSWORD = 'School@2025';
 let pendingAction = null;
 let passwordsLoaded = false;
-
-// EmailJS init
-emailjs.init('DXQ1C6JevFrfjxqpr');
 
 // ============ Firebase Config ============
 const firebaseConfig = {
@@ -602,6 +602,7 @@ function closeDeveloperPage() {
   document.getElementById("mainHeader").classList.remove("hidden");
   document.getElementById("mainContent").classList.remove("hidden");
   document.querySelector(".settings-btn").classList.remove("hidden");
+  goBackHome();
 }
 
 // ============ HOME PAGE ============
