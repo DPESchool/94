@@ -397,6 +397,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
 // ============ DATA ============
 let allStudents = [];
@@ -452,7 +453,7 @@ function calcTotal(examData, subjects) {
 function hasExamData(sid, exam) {
   const r = allResults[sid];
   if (!r || !r[exam]) return false;
-  return Object.keys(r[exam]).length > 0;
+  return Object.keys(r[exam]).filter(k => k !== "inputPassword").length > 0;
 }
 
 // ============ FIREBASE LOAD ============
@@ -490,13 +491,14 @@ function saveSubjects() {
 
 // ============ SCHOOL NAME ============
 let schoolName = localStorage.getItem("schoolName") || "আপনার স্কুলের নাম লিখুন";
-if (schoolName === "পশ্চিম চরলাঠিমারা সরকারি প্রাথমিক বিদ্যালয়" || schoolName === "আপনার স্কুলের নাম লিখুন") {
-  schoolName = "৯৪ নং পশ্চিম চরলাঠিমারা";
+if (!schoolName || schoolName === "আপনার স্কুলের নাম লিখুন" || schoolName === "পশ্চিম চরলাঠিমারা সরকারি প্রাথমিক বিদ্যালয়" || schoolName === "৯৪ নং পশ্চিম চরলাঠিমারা") {
+  schoolName = "৯৪ নং পশ্চিম চরলাঠিমারা সরকারি প্রাথমিক বিদ্যালয়";
   localStorage.setItem("schoolName", schoolName);
 }
 function updateSchoolNameDisplay() {
   const el = document.getElementById("schoolNameDisplay");
   if (el) el.textContent = schoolName;
+  document.title = schoolName + " | শিক্ষার্থী তথ্য ও ফলাফল ব্যবস্থাপনা";
 }
 function updateSubtitle() {
   const el = document.getElementById("totalLabel");
@@ -1532,7 +1534,7 @@ renderHome(); // প্রথমবার খালি হলেও শ্রে
 db.collection("students").onSnapshot(snap => {
   allStudents = snap.docs.map(d => ({ id:d.id, ...d.data(), roll:parseInt(d.data().roll)||9999 }));
   if (currentPage==='home') { renderHome(); updateSubtitle(); }
-  else if (currentPage==='student') { renderHome(); renderStudentPage(); }
+  else if (currentPage==='student') { renderStudentPage(); }
 });
 
 db.collection("teachers").onSnapshot(snap => {
