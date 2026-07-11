@@ -15,7 +15,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
@@ -683,30 +682,41 @@ function saveDeveloperInfo() {
     .then(() => { alert("✅ ডেভেলপার তথ্য সেভ হয়েছে!"); renderSettingsPage(); })
     .catch(e => alert("সমস্যা: " + e.message));
 }
+// ============ IMGBB CONFIG ============
+// এখানে আপনার নিজের ImgBB API Key বসান (https://api.imgbb.com/ থেকে ফ্রিতে নেওয়া যায়)
+const IMGBB_API_KEY = "da10d1a56e6e177a03d9d267f26d5b6d";
+
 function uploadDevPhoto(input) {
   const file = input.files[0];
   if (!file) return;
   const status = document.getElementById("devPhotoStatus");
   status.textContent = "⏳ আপলোড হচ্ছে... ০%";
-  const storageRef = firebase.storage().ref().child("developer/photo_" + Date.now() + "_" + file.name);
-  const uploadTask = storageRef.put(file);
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "https://api.imgbb.com/1/upload?key=" + IMGBB_API_KEY);
+
   const timeoutId = setTimeout(() => {
-    status.textContent = "❌ অনেকক্ষণ ধরে আপলোড হচ্ছে না। Firebase Console-এ Storage চালু আছে কিনা এবং Storage Rules-এ লেখার অনুমতি (ও Anonymous Auth চালু) আছে কিনা চেক করুন।";
+    status.textContent = "❌ অনেকক্ষণ ধরে আপলোড হচ্ছে না। ইন্টারনেট সংযোগ এবং ImgBB API Key ঠিক আছে কিনা চেক করুন।";
   }, 20000);
-  uploadTask.on("state_changed",
-    snap => {
-      const pct = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
+
+  xhr.upload.onprogress = (e) => {
+    if (e.lengthComputable) {
+      const pct = Math.round((e.loaded / e.total) * 100);
       status.textContent = "⏳ আপলোড হচ্ছে... " + pct + "%";
-    },
-    err => {
-      clearTimeout(timeoutId);
-      status.textContent = "❌ সমস্যা: " + err.message;
-    },
-    () => {
-      clearTimeout(timeoutId);
-      uploadTask.snapshot.ref.getDownloadURL()
-        .then(url => db.collection("settings").doc("developerInfo").set({ photoURL: url }, { merge:true }).then(() => url))
-        .then(url => {
+    }
+  };
+
+  xhr.onload = () => {
+    clearTimeout(timeoutId);
+    let res;
+    try { res = JSON.parse(xhr.responseText); } catch (e) { res = null; }
+    if (xhr.status >= 200 && xhr.status < 300 && res && res.success) {
+      const url = res.data.url;
+      db.collection("settings").doc("developerInfo").set({ photoURL: url }, { merge:true })
+        .then(() => {
           status.textContent = "✅ ছবি আপলোড সম্পন্ন!";
           const preview = document.getElementById("devPhotoPreview");
           const placeholder = document.getElementById("devPhotoPlaceholder");
@@ -714,8 +724,18 @@ function uploadDevPhoto(input) {
           if (placeholder) placeholder.style.display = 'none';
         })
         .catch(e => { status.textContent = "❌ সমস্যা: " + e.message; });
+    } else {
+      const msg = (res && res.error && res.error.message) ? res.error.message : "আপলোড ব্যর্থ হয়েছে";
+      status.textContent = "❌ সমস্যা: " + msg;
     }
-  );
+  };
+
+  xhr.onerror = () => {
+    clearTimeout(timeoutId);
+    status.textContent = "❌ নেটওয়ার্ক সমস্যা, আবার চেষ্টা করুন।";
+  };
+
+  xhr.send(formData);
 }
 
 // ============ SCHOOL NAME ============
@@ -770,11 +790,6 @@ function closeSettingsPage() {
 }
 function renderSettingsPage() {
   document.getElementById("settingsContent").innerHTML = `
-    <button class="settings-row" onclick="openMasterPwFromSettings()">
-      <span class="settings-icon">🔐</span>
-      <span class="settings-label">মাস্টার পাসওয়ার্ড পরিবর্তন</span>
-      <span class="settings-chev">›</span>
-    </button>
     <button class="settings-row" onclick="viewSchoolPassword()">
       <span class="settings-icon">🔑</span>
       <span class="settings-label">স্কুল পাসওয়ার্ড দেখুন</span>
