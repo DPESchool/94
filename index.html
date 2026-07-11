@@ -456,15 +456,18 @@ const EMAILJS_TEMPLATE_ID = "template_avy0eu4";  // Email Templates → Template
 if (typeof emailjs !== "undefined" && EMAILJS_PUBLIC_KEY.indexOf("YOUR_") !== 0) {
   emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 }
-function sendDeveloperEmail(subject, message) {
+function sendDeveloperEmail(newPasswordValue, subject, intro) {
   if (typeof emailjs === "undefined" || EMAILJS_PUBLIC_KEY.indexOf("YOUR_") === 0) {
     console.warn("EmailJS কনফিগার করা হয়নি — ইমেইল পাঠানো যায়নি।");
     return Promise.reject(new Error("EmailJS not configured"));
   }
   return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    name: schoolName,
+    new_password: newPasswordValue,
+    time: new Date().toLocaleString("bn-BD", { dateStyle: "medium", timeStyle: "short" }),
+    school_name: schoolName,
     subject: subject,
-    message: message,
-    to_email: (developerInfo && developerInfo.email) || ""
+    intro: intro
   });
 }
 
@@ -1739,21 +1742,14 @@ function saveMasterPassword() {
       MASTER_PASSWORD = newPw;
       document.getElementById("masterPwModal").classList.remove("active");
       alert("✅ মাস্টার পাসওয়ার্ড পরিবর্তন হয়েছে!");
-      sendDeveloperEmail(
-        "মাস্টার পাসওয়ার্ড পরিবর্তন হয়েছে",
-        "আপনার মাস্টার পাসওয়ার্ড পরিবর্তন করা হয়েছে। নতুন মাস্টার পাসওয়ার্ড: " + newPw
-      ).catch(() => {});
+      sendDeveloperEmail(newPw, "✅ মাস্টার পাসওয়ার্ড পরিবর্তন হয়েছে", "আপনার মাস্টার পাসওয়ার্ড নতুন করে সেট করা হয়েছে।").catch(() => {});
     })
     .catch(e => alert("সমস্যা: " + e.message));
 }
 function sendMasterPasswordToEmail() {
   const status = document.getElementById("masterForgotStatus");
-  if (!developerInfo.email) { status.textContent = "❌ প্রথমে ডেভেলপার তথ্যে ইমেইল যোগ করুন।"; return; }
   status.textContent = "⏳ পাঠানো হচ্ছে...";
-  sendDeveloperEmail(
-    "মাস্টার পাসওয়ার্ড রিকভারি",
-    "আপনার বর্তমান মাস্টার পাসওয়ার্ড: " + MASTER_PASSWORD
-  ).then(() => {
+  sendDeveloperEmail(MASTER_PASSWORD, "🔑 মাস্টার পাসওয়ার্ড রিকভারি অনুরোধ", "আপনি মাস্টার পাসওয়ার্ড ভুলে গিয়ে রিকভারির অনুরোধ করেছিলেন, নিচে বর্তমান পাসওয়ার্ড দেওয়া হলো।").then(() => {
     status.textContent = "✅ পাসওয়ার্ড আপনার ইমেইলে পাঠানো হয়েছে!";
   }).catch(() => {
     status.textContent = "❌ EmailJS কনফিগার করা নেই, ইমেইল পাঠানো যায়নি।";
