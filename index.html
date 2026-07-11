@@ -8,7 +8,6 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="ডিজিটাল প্রাইমারি স্কুল: স্টুডেন্ট ও রেজাল্ট ম্যানেজমেন্ট সিস্টেম">
 <meta property="og:description" content="যেকোনো প্রাথমিক বিদ্যালয়ের শিক্ষার্থীদের তথ্য ও রেজাল্ট সহজে ম্যানেজ করার একটি আধুনিক ওয়েব অ্যাপ্লিকেশন।">
-<meta property="og:image" content="https://dpeschool94.vercel.app/preview.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com">
@@ -16,6 +15,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&display=swap">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;color:#1E293B;min-height:100vh;}
@@ -28,8 +30,8 @@ body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;
 .header .subtitle{margin-top:13px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);padding:5px 16px;border-radius:20px;}
 .header .subtitle::before{content:'👥';font-size:13px;}
 .header::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.07) 0%,transparent 70%);}
-.header-info-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:linear-gradient(145deg,#fff8ee,#ffe0b2);color:#0D2561;border:none;cursor:pointer;font-size:16px;font-style:italic;font-family:Georgia,serif;font-weight:bold;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #d4a056,0 6px 10px rgba(0,0,0,0.2);animation:pulse-btn 2.5s infinite;z-index:10;}
-@keyframes pulse-btn{0%,100%{transform:translateY(-50%) scale(0.96);}70%{transform:translateY(-50%) scale(1);}}
+.header-info-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.18);z-index:10;color:#0D2561;}
+.header-info-btn:active{transform:translateY(-50%) scale(0.92);}
 
 /* CONTAINER */
 .container{max-width:500px;margin:0 auto;padding:18px 14px;}
@@ -150,6 +152,24 @@ body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;
 .dev-post-wrap{text-align:center;margin-top:10px;}
 .dev-divider{height:1px;background:#F1F5F9;margin:16px 0;}
 .dev-simple-info{font-size:14px;color:#64748B;margin-top:8px;line-height:1.5;text-align:center;}
+.dev-contact-row{display:flex;flex-direction:column;gap:10px;margin:20px 16px 0;}
+.dev-contact-box{display:flex;align-items:center;gap:12px;background:#F8FAFC;color:#1E293B;font-size:14px;font-weight:600;padding:14px 16px;border-radius:12px;text-decoration:none;border:1px solid #F1F5F9;}
+.dev-contact-box:active{opacity:0.7;}
+.dev-contact-box .dcb-icon{width:34px;height:34px;border-radius:9px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.dev-code-icon{width:40px;height:40px;margin:26px auto 10px;border-radius:50%;background:linear-gradient(135deg,#F1F5F9,#E2E8F0);display:flex;align-items:center;justify-content:center;opacity:0.5;cursor:pointer;box-shadow:inset 0 1px 2px rgba(0,0,0,0.04);transition:opacity 0.2s, transform 0.15s;color:#94A3B8;}
+.dev-code-icon:active{opacity:1;transform:scale(0.92);}
+.code-window{display:inline-block;width:22px;height:18px;border:1.6px solid currentColor;border-radius:4px;overflow:hidden;flex-shrink:0;}
+.code-window .cw-topbar{height:5px;border-bottom:1.6px solid currentColor;display:flex;align-items:center;gap:1.5px;padding:0 2.5px;position:relative;}
+.code-window .cw-topbar span{width:1.3px;height:1.3px;border-radius:50%;background:currentColor;}
+.code-window .cw-topbar i{position:absolute;right:2.5px;top:1.4px;width:6px;height:1.2px;background:currentColor;border-radius:1px;}
+.code-window .cw-body{display:flex;align-items:center;justify-content:center;height:11px;font-family:'Courier New',monospace;font-weight:700;font-size:8.5px;line-height:1;}
+.forgot-pw-link{display:block;text-align:center;font-size:12px;color:#64748B;margin-top:10px;text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;width:100%;}
+.contact-dev-box{margin-top:6px;}
+.contact-dev-note{font-size:11.5px;color:#94A3B8;text-align:center;margin-bottom:10px;}
+.contact-dev-btns{display:flex;gap:8px;}
+.contact-dev-btns a{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;font-family:inherit;}
+.contact-dev-btns .mail-btn{background:#EFF6FF;color:#1D4ED8;border:1.5px solid #DBEAFE;}
+.contact-dev-btns .call-btn2{background:#F0FDF4;color:#15803D;border:1.5px solid #DCFCE7;}
 
 /* RESULT SYSTEM STYLES */
 .exam-section{background:white;border-radius:16px;padding:16px;margin-bottom:12px;border:1.5px solid #E2E8F0;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
@@ -212,6 +232,13 @@ body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;
 .pdf-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#DC2626,#B91C1C);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(220,38,38,0.3);margin-top:8px;}
 .pdf-btn:active{transform:scale(0.98);}
 
+/* CLASS HISTORY TABS reuse .exam-tabs/.exam-tab */
+.history-note{font-size:11px;color:#94A3B8;text-align:center;margin:-6px 0 12px;}
+
+/* DELETE ALL RESULTS BTN */
+.delete-all-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:13px;border-radius:12px;border:1.5px solid #FEE2E2;background:#FEF2F2;color:#EF4444;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:10px;}
+.delete-all-btn:active{transform:scale(0.98);}
+
 .hidden{display:none;}
 </style>
 </head>
@@ -222,7 +249,12 @@ body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;
   <h1 id="schoolNameDisplay">আপনার স্কুলের নাম লিখুন</h1>
   <div class="program-label">শিক্ষার্থী তথ্য ও ফলাফল ব্যবস্থাপনা</div>
   <div class="subtitle" id="totalLabel">মোট ০ জন শিক্ষার্থী</div>
-  <button class="header-info-btn" onclick="openDeveloperPage()">i</button>
+  <button class="header-info-btn" onclick="openDeveloperPage()" title="Developer Info">
+    <span class="code-window">
+      <span class="cw-topbar"><span></span><span></span><span></span><i></i></span>
+      <span class="cw-body">&lt;/&gt;</span>
+    </span>
+  </button>
 </div>
 
 <!-- MAIN CONTENT -->
@@ -272,17 +304,7 @@ body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;
     <span class="dev-title">Developer Info</span>
     <button class="dev-header-right" onclick="handleSettingsClick()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:white;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">⚙️</button>
   </div>
-  <div class="profile-section">
-    <div class="dev-banner">
-      <img class="dev-avatar" src="photo.jpg" alt="Developer Photo" onerror="this.outerHTML='<div style=&quot;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:44px;box-shadow:0 8px 24px rgba(0,0,0,0.2);&quot;>👨‍💻</div>'" />
-    </div>
-    <div class="dev-card">
-      <div class="dev-name">মোঃ নাফিউল ইসলাম ফাহাদ</div>
-      <div class="dev-post-wrap"><span class="dev-post">সহকারী শিক্ষক</span></div>
-      <div class="dev-simple-info">৯৪ নং পশ্চিম চরলাঠিমারা সরকারি প্রাথমিক বিদ্যালয়</div>
-      <div class="dev-simple-info">আইসিটি বিষয়ক সম্পাদক, প্রাথমিক শিক্ষক সমিতি, পাথরঘাটা, বরগুনা</div>
-    </div>
-  </div>
+  <div class="profile-section" id="devProfileContent"></div>
 </div>
 
 <!-- SETTINGS PAGE -->
@@ -323,6 +345,24 @@ body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;
       <button class="btn-primary" onclick="doChangePassword()">পরিবর্তন করুন</button>
       <button class="btn-secondary" onclick="document.getElementById('changePwModal').classList.remove('active')">বাতিল</button>
     </div>
+    <button class="forgot-pw-link" onclick="openSchoolForgotPassword()">ফরগেট পাসওয়ার্ড?</button>
+  </div>
+</div>
+
+<!-- SCHOOL FORGOT PASSWORD (CONTACT DEVELOPER) MODAL -->
+<div class="modal-overlay" id="schoolForgotModal">
+  <div class="modal-box">
+    <div class="modal-title">🔑 পাসওয়ার্ড ভুলে গেছেন?</div>
+    <div class="contact-dev-box">
+      <div class="contact-dev-note">পাসওয়ার্ড রিসেট করতে ডেভেলপারের সাথে সরাসরি যোগাযোগ করুন</div>
+      <div class="contact-dev-btns">
+        <a href="#" id="schoolForgotMailBtn" class="mail-btn">📧 মেইল করুন</a>
+        <a href="#" id="schoolForgotCallBtn" class="call-btn2">📞 কল করুন</a>
+      </div>
+    </div>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn-secondary" onclick="document.getElementById('schoolForgotModal').classList.remove('active')">বন্ধ করুন</button>
+    </div>
   </div>
 </div>
 
@@ -355,6 +395,8 @@ body{font-family:'Hind Siliguri','Segoe UI',Arial,sans-serif;background:#F0F4F8;
       <button class="btn-primary" onclick="saveMasterPassword()">পরিবর্তন করুন</button>
       <button class="btn-secondary" onclick="document.getElementById('masterPwModal').classList.remove('active')">বাতিল</button>
     </div>
+    <button class="forgot-pw-link" onclick="sendMasterPasswordToEmail()">ফরগেট পাসওয়ার্ড?</button>
+    <div id="masterForgotStatus" style="font-size:11.5px;color:#64748B;text-align:center;margin-top:6px;"></div>
   </div>
 </div>
 
@@ -399,6 +441,33 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
+// অ্যানোনিমাস অথেন্টিকেশন — এটা চালু থাকলে Firestore সিকিউরিটি রুলস অনেক ছোট
+// রাখা যায় (শুধু "request.auth != null" চেক করলেই হয়, রোল/পাসওয়ার্ড আলাদা করে
+// রুলসে লেখার দরকার হয় না — অ্যাপের ভেতরের পাসওয়ার্ড-গেট এমনিতেই আছে)।
+firebase.auth().signInAnonymously().catch(e => console.error("Anonymous auth failed:", e.message));
+
+// ============ EmailJS কনফিগারেশন ============
+// ⚠️ নিচের তিনটা মান অবশ্যই আপনার EmailJS ড্যাশবোর্ড থেকে বসাতে হবে,
+// নাহলে মাস্টার পাসওয়ার্ড ইমেইল ফিচারগুলো কাজ করবে না।
+const EMAILJS_PUBLIC_KEY  = "YOUR_EMAILJS_PUBLIC_KEY";   // Account → General → Public Key
+const EMAILJS_SERVICE_ID  = "YOUR_EMAILJS_SERVICE_ID";   // Email Services → Service ID
+const EMAILJS_TEMPLATE_ID = "YOUR_EMAILJS_TEMPLATE_ID";  // Email Templates → Template ID
+// টেমপ্লেটে এই দুইটা ভ্যারিয়েবল রাখলেই যথেষ্ট: {{subject}} এবং {{message}}
+if (typeof emailjs !== "undefined" && EMAILJS_PUBLIC_KEY.indexOf("YOUR_") !== 0) {
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+}
+function sendDeveloperEmail(subject, message) {
+  if (typeof emailjs === "undefined" || EMAILJS_PUBLIC_KEY.indexOf("YOUR_") === 0) {
+    console.warn("EmailJS কনফিগার করা হয়নি — ইমেইল পাঠানো যায়নি।");
+    return Promise.reject(new Error("EmailJS not configured"));
+  }
+  return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    subject: subject,
+    message: message,
+    to_email: (developerInfo && developerInfo.email) || ""
+  });
+}
+
 // ============ DATA ============
 let allStudents = [];
 let allTeachers = [];
@@ -413,6 +482,14 @@ let editingTeacherId = null;
 let addingTeacher = false;
 let currentPage = 'home'; // home | student | studentResult | merit | subjectSetup | teacher
 let editingResultExam = null;
+let resultViewClass = null; // which class's result set is currently shown on the studentResult page
+let developerInfo = { photoURL: '', email: '', phone: '', fields: [
+  { label: 'নাম', value: 'মোঃ নাফিউল ইসলাম ফাহাদ' },
+  { label: 'পদবি', value: 'সহকারী শিক্ষক' },
+  { label: 'বিদ্যালয়', value: '৯৪ নং পশ্চিম চরলাঠিমারা সরকারি প্রাথমিক বিদ্যালয়' },
+  { label: 'পরিচিতি', value: 'আইসিটি বিষয়ক সম্পাদক, প্রাথমিক শিক্ষক সমিতি, পাথরঘাটা, বরগুনা' }
+] };
+let tempDevFields = [];
 
 const DESIGNATIONS = ["সহকারী শিক্ষক","প্রধান শিক্ষক","প্রধান শিক্ষক (চলতি দায়িত্ব)","প্রধান শিক্ষক (ভারপ্রাপ্ত)"];
 const EXAM_LABELS = { exam1: "প্রথম সাময়িক", exam2: "দ্বিতীয় সাময়িক", exam3: "তৃতীয় সাময়িক" };
@@ -438,8 +515,11 @@ function studentsOfClass(cls) {
 function getSubjects(cls) {
   return classSubjects[cls] || [];
 }
-function getStudentResults(sid) {
-  return allResults[sid] || {};
+// Results are stored per student PER CLASS, so promoting a student to a new
+// class never overwrites or hides the results from their earlier classes:
+// allResults[studentId] = { [className]: { exam1:{...}, exam2:{...}, exam3:{...} } }
+function getStudentResults(sid, cls) {
+  return (allResults[sid] && allResults[sid][cls]) || {};
 }
 function calcTotal(examData, subjects) {
   if (!examData) return null;
@@ -450,10 +530,20 @@ function calcTotal(examData, subjects) {
   });
   return hasAny ? total : null;
 }
-function hasExamData(sid, exam) {
+function hasExamData(sid, cls, exam) {
   const r = allResults[sid];
-  if (!r || !r[exam]) return false;
-  return Object.keys(r[exam]).filter(k => k !== "inputPassword").length > 0;
+  if (!r || !r[cls] || !r[cls][exam]) return false;
+  return Object.keys(r[cls][exam]).filter(k => k !== "inputPassword").length > 0;
+}
+// Returns, in class order, every class this student has exam results in,
+// always including their current class even if empty so it can be filled in.
+function getStudentClassHistory(sid, homeClass) {
+  const withData = classOrder.filter(c => EXAMS.some(ex => hasExamData(sid, c, ex)));
+  if (homeClass && !withData.includes(homeClass)) withData.push(homeClass);
+  return classOrder.filter(c => withData.includes(c));
+}
+function escapeHtml(str) {
+  return String(str==null?'':str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 // ============ FIREBASE LOAD ============
@@ -489,6 +579,130 @@ function saveSubjects() {
     .catch(e => alert("সমস্যা: " + e.message));
 }
 
+// ============ DEVELOPER INFO (dynamic, editable via Settings) ============
+function loadDeveloperInfo() {
+  db.collection("settings").doc("developerInfo").onSnapshot(doc => {
+    if (doc.exists) {
+      const d = doc.data() || {};
+      developerInfo = {
+        photoURL: d.photoURL || '',
+        email: d.email || '',
+        phone: d.phone || '',
+        fields: (d.fields && d.fields.length) ? d.fields : developerInfo.fields
+      };
+    } else {
+      db.collection("settings").doc("developerInfo").set(developerInfo).catch(() => {});
+    }
+    renderDeveloperProfile();
+  }, () => {});
+}
+function renderDeveloperProfile() {
+  const el = document.getElementById("devProfileContent");
+  if (!el) return;
+  const avatarHtml = developerInfo.photoURL
+    ? `<img class="dev-avatar" src="${developerInfo.photoURL}" alt="Developer Photo" />`
+    : `<div style="width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.15);border:3px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:44px;box-shadow:0 8px 24px rgba(0,0,0,0.2);">👨‍💻</div>`;
+  let fieldsHtml = '';
+  developerInfo.fields.forEach((f, i) => {
+    if (i === 0) fieldsHtml += `<div class="dev-name">${escapeHtml(f.value)}</div>`;
+    else if (i === 1) fieldsHtml += `<div class="dev-post-wrap"><span class="dev-post">${escapeHtml(f.value)}</span></div>`;
+    else fieldsHtml += `<div class="dev-simple-info">${escapeHtml(f.value)}</div>`;
+  });
+  let contactHtml = '';
+  if (developerInfo.email || developerInfo.phone) {
+    contactHtml = `<div class="dev-contact-row">`;
+    if (developerInfo.phone) contactHtml += `<a class="dev-contact-box" href="tel:${escapeHtml(developerInfo.phone)}"><span class="dcb-icon">📞</span><span>${escapeHtml(developerInfo.phone)}</span></a>`;
+    if (developerInfo.email) contactHtml += `<a class="dev-contact-box" href="mailto:${escapeHtml(developerInfo.email)}"><span class="dcb-icon">📧</span><span>${escapeHtml(developerInfo.email)}</span></a>`;
+    contactHtml += `</div>`;
+  }
+  el.innerHTML = `
+    <div class="dev-banner">${avatarHtml}</div>
+    <div class="dev-card">${fieldsHtml}</div>
+    ${contactHtml}
+    <div class="dev-code-icon" onclick="openMasterPwFromSettings()" title="Master Password Reset">
+      <span class="code-window">
+        <span class="cw-topbar"><span></span><span></span><span></span><i></i></span>
+        <span class="cw-body">&lt;/&gt;</span>
+      </span>
+    </div>`;
+}
+function renderDeveloperEditForm() {
+  tempDevFields = JSON.parse(JSON.stringify(developerInfo.fields));
+  let html = `
+    <button class="back-btn" style="margin-bottom:14px;" onclick="renderSettingsPage()">‹ সেটিংসে ফিরুন</button>
+    <div class="edit-card" style="background:white;border:1.5px solid #E2E8F0;">
+      <div class="edit-title">🖼️ ডেভেলপার ছবি</div>
+      <div style="text-align:center;margin-bottom:6px;">
+        <img id="devPhotoPreview" src="${developerInfo.photoURL||''}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;background:#EEF2FF;display:${developerInfo.photoURL?'block':'none'};margin:0 auto 10px;border:2px solid #E2E8F0;" />
+        <div id="devPhotoPlaceholder" style="display:${developerInfo.photoURL?'none':'flex'};width:90px;height:90px;border-radius:50%;background:#EEF2FF;align-items:center;justify-content:center;font-size:36px;margin:0 auto 10px;">👨‍💻</div>
+        <input type="file" id="devPhotoInput" accept="image/*" style="display:none;" onchange="uploadDevPhoto(this)" />
+        <button class="btn-secondary" style="max-width:220px;margin:0 auto;display:block;" onclick="document.getElementById('devPhotoInput').click()">🖼️ ছবি পরিবর্তন করুন</button>
+        <div id="devPhotoStatus" style="font-size:12px;color:#64748B;margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="subject-setup-card">
+      <div style="font-size:12px;color:#64748B;font-weight:700;margin-bottom:8px;">যোগাযোগের তথ্য (ফরগেট পাসওয়ার্ড ও নোটিফিকেশনের জন্য ব্যবহৃত হবে)</div>
+      <input class="form-input" style="margin-bottom:8px;" id="devEmailInput" type="email" value="${escapeHtml(developerInfo.email||'')}" placeholder="ইমেইল (যেমনঃ example@gmail.com)" />
+      <input class="form-input" style="margin-bottom:0;" id="devPhoneInput" type="tel" value="${escapeHtml(developerInfo.phone||'')}" placeholder="ফোন নাম্বার (যেমনঃ 01700000000)" />
+    </div>
+    <div class="subject-setup-card">
+      <div style="font-size:12px;color:#64748B;font-weight:700;margin-bottom:8px;">তথ্য ফিল্ডসমূহ (প্রথমটি নাম, দ্বিতীয়টি পদবি হিসেবে দেখানো হয়)</div>
+      <div id="devFieldList"></div>
+      <button class="add-subject-btn" onclick="addDevField()">+ নতুন ফিল্ড যোগ করুন</button>
+    </div>
+    <div class="btn-row" style="margin-top:8px;">
+      <button class="btn-primary" onclick="saveDeveloperInfo()">✅ সেভ করুন</button>
+      <button class="btn-secondary" onclick="renderSettingsPage()">বাতিল</button>
+    </div>`;
+  document.getElementById("settingsContent").innerHTML = html;
+  renderDevFieldList();
+}
+function renderDevFieldList() {
+  let html = '';
+  tempDevFields.forEach((f, i) => {
+    html += `
+      <div class="subject-setup-row">
+        <input class="subject-setup-name form-input" style="margin-bottom:0;flex:1;" value="${escapeHtml(f.label)}" oninput="tempDevFields[${i}].label=this.value" placeholder="ফিল্ডের নাম (যেমনঃ পদবি)" />
+        <input class="subject-setup-name form-input" style="margin-bottom:0;flex:1.4;" value="${escapeHtml(f.value)}" oninput="tempDevFields[${i}].value=this.value" placeholder="মান লিখুন" />
+        <button class="subject-setup-del" onclick="removeDevField(${i})">✕</button>
+      </div>`;
+  });
+  document.getElementById("devFieldList").innerHTML = html;
+}
+function addDevField() { tempDevFields.push({ label:'', value:'' }); renderDevFieldList(); }
+function removeDevField(i) { tempDevFields.splice(i,1); renderDevFieldList(); }
+function saveDeveloperInfo() {
+  const valid = tempDevFields.filter(f => f.value.trim());
+  if (!valid.length) { alert("কমপক্ষে একটি ফিল্ড পূরণ করুন!"); return; }
+  const email = document.getElementById("devEmailInput").value.trim();
+  const phone = document.getElementById("devPhoneInput").value.trim();
+  db.collection("settings").doc("developerInfo").set({ fields: valid, email, phone }, { merge:true })
+    .then(() => { alert("✅ ডেভেলপার তথ্য সেভ হয়েছে!"); renderSettingsPage(); })
+    .catch(e => alert("সমস্যা: " + e.message));
+}
+function uploadDevPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById("devPhotoStatus");
+  status.textContent = "⏳ আপলোড হচ্ছে...";
+  const storageRef = firebase.storage().ref().child("developer/photo_" + Date.now() + "_" + file.name);
+  let uploadedUrl = '';
+  storageRef.put(file)
+    .then(snap => snap.ref.getDownloadURL())
+    .then(url => {
+      uploadedUrl = url;
+      return db.collection("settings").doc("developerInfo").set({ photoURL: url }, { merge:true });
+    })
+    .then(() => {
+      status.textContent = "✅ ছবি আপলোড সম্পন্ন!";
+      const preview = document.getElementById("devPhotoPreview");
+      const placeholder = document.getElementById("devPhotoPlaceholder");
+      if (preview) { preview.src = uploadedUrl; preview.style.display = 'block'; }
+      if (placeholder) placeholder.style.display = 'none';
+    })
+    .catch(e => { status.textContent = "❌ সমস্যা: " + e.message; });
+}
+
 // ============ SCHOOL NAME ============
 let schoolName = localStorage.getItem("schoolName") || "আপনার স্কুলের নাম লিখুন";
 if (!schoolName || schoolName === "আপনার স্কুলের নাম লিখুন" || schoolName === "পশ্চিম চরলাঠিমারা সরকারি প্রাথমিক বিদ্যালয়" || schoolName === "৯৪ নং পশ্চিম চরলাঠিমারা") {
@@ -512,6 +726,10 @@ function openSchoolNameFromSettings() {
     document.getElementById("schoolNameError").textContent = "";
     document.getElementById("schoolNameModal").classList.add("active");
   });
+}
+function viewSchoolPassword() {
+  // সেটিংস পেজে ঢুকতেই মাস্টার পাসওয়ার্ড লেগেছে, তাই এখানে আলাদা করে আর গেট লাগছে না।
+  alert("🔑 এই স্কুলের বর্তমান পাসওয়ার্ড: " + savedPassword);
 }
 function saveSchoolName() {
   const newName = document.getElementById("newSchoolName").value.trim();
@@ -542,6 +760,11 @@ function renderSettingsPage() {
       <span class="settings-label">মাস্টার পাসওয়ার্ড পরিবর্তন</span>
       <span class="settings-chev">›</span>
     </button>
+    <button class="settings-row" onclick="viewSchoolPassword()">
+      <span class="settings-icon">🔑</span>
+      <span class="settings-label">স্কুল পাসওয়ার্ড দেখুন</span>
+      <span class="settings-chev">›</span>
+    </button>
     <button class="settings-row" onclick="openSchoolNameFromSettings()">
       <span class="settings-icon">🏫</span>
       <span class="settings-label">স্কুলের নাম পরিবর্তন</span>
@@ -555,6 +778,11 @@ function renderSettingsPage() {
     <button class="settings-row" onclick="requireMasterPassword(renderSettingsSubjectClassList)">
       <span class="settings-icon">📚</span>
       <span class="settings-label">বিষয় সেটআপ</span>
+      <span class="settings-chev">›</span>
+    </button>
+    <button class="settings-row" onclick="requireMasterPassword(renderDeveloperEditForm)">
+      <span class="settings-icon">👨‍💻</span>
+      <span class="settings-label">ডেভেলপার তথ্য সম্পাদনা</span>
       <span class="settings-chev">›</span>
     </button>`;
 }
@@ -597,6 +825,7 @@ function openDeveloperPage() {
   document.getElementById("mainContent").classList.add("hidden");
   document.querySelector(".settings-btn").classList.add("hidden");
   document.getElementById("developerPage").classList.remove("hidden");
+  renderDeveloperProfile();
   history.pushState({ page:"developer" }, "");
 }
 function closeDeveloperPage() {
@@ -666,6 +895,7 @@ function goBackHome() {
 
 function goBackToClass() {
   editingStudentId = null; addingStudent = false; editingResultExam = null;
+  resultViewClass = null;
   currentPage = 'student';
   hideAllPages();
   document.getElementById("studentPage").classList.remove("hidden");
@@ -714,8 +944,6 @@ function renderStudentPage() {
           </div>
         </div>`;
     } else {
-      const sResults = getStudentResults(s.id);
-
       html += `
         <div class="student-card" style="border-left:4px solid ${col.badge}">
           <div class="student-top">
@@ -800,6 +1028,8 @@ function addStudent() {
 // ============ STUDENT RESULT PAGE ============
 function openStudentResult(sid) {
   currentStudentId = sid;
+  const s = allStudents.find(x => x.id === sid);
+  resultViewClass = s ? s.className : currentClass;
   currentPage = 'studentResult';
   editingResultExam = null;
   hideAllPages();
@@ -808,19 +1038,27 @@ function openStudentResult(sid) {
   renderStudentResultPage();
 }
 
+function switchResultViewClass(cls) {
+  resultViewClass = cls;
+  editingResultExam = null;
+  renderStudentResultPage();
+}
+
 function renderStudentResultPage() {
   const s = allStudents.find(x => x.id === currentStudentId);
   if (!s) { goBackToClass(); return; }
-  const subjects = getSubjects(currentClass);
-  const sResults = getStudentResults(currentStudentId);
-  const col = classColors[currentClass];
+  if (!resultViewClass) resultViewClass = s.className;
+  const classHistory = getStudentClassHistory(currentStudentId, s.className);
+  const subjects = getSubjects(resultViewClass);
+  const sResults = getStudentResults(currentStudentId, resultViewClass);
+  const col = classColors[resultViewClass] || classColors[s.className];
 
   let html = `
     <div class="back-row">
       <button class="back-btn" onclick="goBackToClass()">‹ ফিরে যান</button>
       <div>
         <div class="back-title">${s.name}</div>
-        <div class="back-sub">রোল: ${s.roll||'?'} · ${currentClass}</div>
+        <div class="back-sub">রোল: ${s.roll||'?'} · বর্তমান শ্রেণী: ${s.className}</div>
       </div>
     </div>
     <div class="student-profile-header">
@@ -829,15 +1067,22 @@ function renderStudentResultPage() {
       <div class="student-profile-info">ফোন: ${s.phone||''}</div>
     </div>`;
 
+  if (classHistory.length > 1) {
+    html += `<div class="exam-tabs">` +
+      classHistory.map(c => `<button class="exam-tab ${c===resultViewClass?'active':''}" onclick="switchResultViewClass('${c}')">${c}</button>`).join('') +
+      `</div>
+      <div class="history-note">যে শ্রেণীর ফলাফল দেখতে চান তা উপর থেকে নির্বাচন করুন — আগের শ্রেণীর ফলাফল স্বয়ংক্রিয়ভাবে সংরক্ষিত থাকে।</div>`;
+  }
+
   if (!subjects.length) {
-    html += `<div class="no-result">এই শ্রেণীর জন্য এখনো বিষয় সেটআপ করা হয়নি।<br><br>Developer Info → ⚙️ সেটিংস → 📚 বিষয় সেটআপ থেকে যুক্ত করুন।</div>`;
+    html += `<div class="no-result">${resultViewClass} শ্রেণীর জন্য এখনো বিষয় সেটআপ করা হয়নি।<br><br>Developer Info → ⚙️ সেটিংস → 📚 বিষয় সেটআপ থেকে যুক্ত করুন।</div>`;
     document.getElementById("studentResultPage").innerHTML = html;
     return;
   }
 
   EXAMS.forEach(exam => {
     const examData = sResults[exam] || {};
-    const isDone = hasExamData(currentStudentId, exam);
+    const isDone = hasExamData(currentStudentId, resultViewClass, exam);
     const isEditing = editingResultExam === exam;
     const total = calcTotal(examData, subjects);
     const maxTotal = subjects.reduce((a,b) => a + (Number(b.total)||0), 0);
@@ -901,8 +1146,9 @@ function renderStudentResultPage() {
     html += `</div>`;
   });
 
-  // PDF export button
-  html += `<button class="pdf-btn" onclick="exportStudentPDF()">📄 PDF ডাউনলোড করুন</button>`;
+  // PDF export + bulk delete buttons
+  html += `<button class="pdf-btn" onclick="exportStudentPDF()">📄 PDF ডাউনলোড করুন (${resultViewClass})</button>`;
+  html += `<button class="delete-all-btn" onclick="deleteAllStudentResults()">🗑️ ${s.name} এর সকল শ্রেণীর সকল ফলাফল ডিলিট করুন</button>`;
   html += `<div style="height:20px;"></div>`;
 
   document.getElementById("studentResultPage").innerHTML = html;
@@ -914,17 +1160,18 @@ function startResultEdit(exam) {
 function cancelResultEdit() { editingResultExam = null; renderStudentResultPage(); }
 
 function saveResult(exam) {
-  const subjects = getSubjects(currentClass);
+  const subjects = getSubjects(resultViewClass);
   const examData = {};
   subjects.forEach(sub => {
     const key = `ri_${exam}_${sub.name.replace(/\s/g,'_')}`;
     const el = document.getElementById(key);
     if (el) examData[sub.name] = el.value !== '' ? Number(el.value) : '';
   });
-  db.collection("results").doc(currentStudentId).set({ [exam]: examData }, { merge: true })
+  db.collection("results").doc(currentStudentId).set({ [resultViewClass]: { [exam]: examData } }, { merge: true })
     .then(() => {
       if (!allResults[currentStudentId]) allResults[currentStudentId] = {};
-      allResults[currentStudentId][exam] = examData;
+      if (!allResults[currentStudentId][resultViewClass]) allResults[currentStudentId][resultViewClass] = {};
+      allResults[currentStudentId][resultViewClass][exam] = examData;
       editingResultExam = null;
       renderStudentResultPage();
     }).catch(e => alert("সমস্যা: " + e.message));
@@ -932,13 +1179,33 @@ function saveResult(exam) {
 
 function deleteResult(exam) {
   requirePassword(() => {
-    if (!confirm(EXAM_LABELS[exam] + " এর ফলাফল মুছে ফেলবেন?")) return;
+    if (!confirm(EXAM_LABELS[exam] + " এর (" + resultViewClass + ") ফলাফল মুছে ফেলবেন?")) return;
     db.collection("results").doc(currentStudentId).update({ inputPassword: currentPassword })
-      .then(() => db.collection("results").doc(currentStudentId).update({ [exam]: firebase.firestore.FieldValue.delete() }))
+      .then(() => db.collection("results").doc(currentStudentId).update({ [resultViewClass + "." + exam]: firebase.firestore.FieldValue.delete() }))
       .then(() => {
-        if (allResults[currentStudentId]) delete allResults[currentStudentId][exam];
+        if (allResults[currentStudentId] && allResults[currentStudentId][resultViewClass]) delete allResults[currentStudentId][resultViewClass][exam];
         renderStudentResultPage();
       }).catch(e => alert("সমস্যা: " + e.message));
+  });
+}
+
+// Deletes ALL exam results for this student across every class in one click.
+function deleteAllStudentResults() {
+  const s = allStudents.find(x => x.id === currentStudentId);
+  requirePassword(() => {
+    if (!confirm((s?s.name:'শিক্ষার্থী') + " এর সকল শ্রেণীর সকল বিষয়ের ফলাফল স্থায়ীভাবে মুছে ফেলা হবে। আপনি কি নিশ্চিত?")) return;
+    db.collection("results").doc(currentStudentId).update({ inputPassword: currentPassword })
+      .then(() => db.collection("results").doc(currentStudentId).delete())
+      .then(() => {
+        delete allResults[currentStudentId];
+        editingResultExam = null;
+        renderStudentResultPage();
+        alert("✅ সকল ফলাফল মুছে ফেলা হয়েছে!");
+      }).catch(e => {
+        // Doc may not have existed yet (no results ever saved) — nothing to delete.
+        delete allResults[currentStudentId];
+        renderStudentResultPage();
+      });
   });
 }
 
@@ -946,12 +1213,12 @@ function deleteResult(exam) {
 function exportStudentPDF() {
   const s = allStudents.find(x => x.id === currentStudentId);
   if (!s) return;
-  const subjects = getSubjects(currentClass);
-  const sResults = getStudentResults(currentStudentId);
+  const subjects = getSubjects(resultViewClass);
+  const sResults = getStudentResults(currentStudentId, resultViewClass);
   const maxTotal = subjects.reduce((a,b) => a+(Number(b.total)||0), 0);
   let examRows = '';
   EXAMS.forEach(exam => {
-    if (!hasExamData(currentStudentId, exam)) return;
+    if (!hasExamData(currentStudentId, resultViewClass, exam)) return;
     const examData = sResults[exam] || {};
     const total = calcTotal(examData, subjects);
     examRows += `<div class="pr-exam-title">${EXAM_LABELS[exam]}</div>
@@ -984,7 +1251,7 @@ function exportStudentPDF() {
     <div class="pr-info-row">নাম: <span>${s.name}</span></div>
     <div class="pr-info-row">রোল: <span>${s.roll||'?'}</span></div>
     <div class="pr-info-row">পিতা: <span>${s.father||''}</span></div>
-    <div class="pr-info-row">শ্রেণী: <span>${currentClass}</span></div>
+    <div class="pr-info-row">শ্রেণী: <span>${resultViewClass}</span></div>
   </div>
   ${examRows}
   <div class="pr-footer"><span>তারিখ: ${new Date().toLocaleDateString('bn-BD')}</span><span>স্বাক্ষর: _______________</span></div>
@@ -1009,7 +1276,7 @@ function renderMeritPage() {
 
   // Build merit data
   const meritData = students.map(s => {
-    const examData = (allResults[s.id]||{})[currentMeritExam] || null;
+    const examData = (((allResults[s.id]||{})[currentClass])||{})[currentMeritExam] || null;
     const total = examData ? calcTotal(examData, subjects) : null;
     return { ...s, total };
   }).filter(s => s.total !== null).sort((a,b) => (b.total||0)-(a.total||0));
@@ -1071,14 +1338,14 @@ function exportClassResultSheet() {
   const sorted = [...students].sort((a,b) => (parseInt(a.roll)||999)-(parseInt(b.roll)||999));
   // rank map
   const withResults = sorted.map(s => {
-    const ed = (allResults[s.id]||{})[currentMeritExam]||null;
+    const ed = (((allResults[s.id]||{})[currentClass])||{})[currentMeritExam]||null;
     const total = ed ? calcTotal(ed, subjects) : null;
     return { ...s, total };
   }).filter(s => s.total !== null).sort((a,b) => (b.total||0)-(a.total||0));
   const rankMap = {};
   withResults.forEach((s,i) => { rankMap[s.id] = i+1; });
   const rows = sorted.map(s => {
-    const ed = (allResults[s.id]||{})[currentMeritExam]||null;
+    const ed = (((allResults[s.id]||{})[currentClass])||{})[currentMeritExam]||null;
     const hasResult = ed && calcTotal(ed, subjects) !== null;
     const total = hasResult ? calcTotal(ed, subjects) : null;
     const rank = rankMap[s.id] || null;
@@ -1096,7 +1363,7 @@ function exportClassResultSheet() {
     return `<tr><td style="text-align:center;">${s.roll||'?'}</td><td>${s.name}</td>${subCells}${totalCell}${rankCell}</tr>`;
   }).join('');
   const subHeaders = subjects.map(sub => `<th>${sub.name}<br><span style="font-weight:400;font-size:10px;">(${sub.total})</span></th>`).join('');
-  const presentCount = sorted.filter(s => { const ed=(allResults[s.id]||{})[currentMeritExam]||null; return ed&&calcTotal(ed,subjects)!==null; }).length;
+  const presentCount = sorted.filter(s => { const ed=(((allResults[s.id]||{})[currentClass])||{})[currentMeritExam]||null; return ed&&calcTotal(ed,subjects)!==null; }).length;
   const absentCount = sorted.length - presentCount;
   const win = window.open('','_blank');
   win.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8">
@@ -1424,7 +1691,7 @@ function saveMaxTeachers() {
 // ============ SETTINGS ============
 function handleSettingsClick() {
   if (!document.getElementById("developerPage").classList.contains("hidden")) {
-    openSettingsPage();
+    requireMasterPassword(openSettingsPage);
   } else { openChangePassword(); }
 }
 function openChangePassword() {
@@ -1446,6 +1713,19 @@ function doChangePassword() {
     .then(() => { savedPassword = nw; document.getElementById("changePwModal").classList.remove("active"); alert("✅ পাসওয়ার্ড পরিবর্তন হয়েছে!"); })
     .catch(e => alert("সমস্যা: " + e.message));
 }
+// EmailJS লাগে না — সরাসরি ফোনের মেইল/ডায়ালার অ্যাপ খুলে দেয়, তাই ভুয়া তথ্য
+// দেওয়ার সুযোগ নেই এবং কোনো পাঠানোর লিমিটও ফুরাবে না।
+function openSchoolForgotPassword() {
+  const mailBtn = document.getElementById("schoolForgotMailBtn");
+  const callBtn = document.getElementById("schoolForgotCallBtn");
+  const subject = encodeURIComponent("পাসওয়ার্ড সহায়তা — " + schoolName);
+  const body = encodeURIComponent("আসসালামু আলাইকুম,\nআমার স্কুলের পাসওয়ার্ড ভুলে গিয়েছি, সাহায্য করবেন।\n\nস্কুল: " + schoolName);
+  mailBtn.href = developerInfo.email ? ("mailto:" + developerInfo.email + "?subject=" + subject + "&body=" + body) : "#";
+  callBtn.href = developerInfo.phone ? ("tel:" + developerInfo.phone) : "#";
+  if (!developerInfo.email) mailBtn.style.opacity = "0.5";
+  if (!developerInfo.phone) callBtn.style.opacity = "0.5";
+  document.getElementById("schoolForgotModal").classList.add("active");
+}
 function saveMasterPassword() {
   const oldPw = document.getElementById("oldMasterPw").value.trim();
   const newPw = document.getElementById("newMasterPw").value.trim();
@@ -1455,8 +1735,29 @@ function saveMasterPassword() {
   if (newPw.length < 4) { err.textContent = "কমপক্ষে ৪ অক্ষর হতে হবে!"; return; }
   if (newPw !== confirmPw) { err.textContent = "পাসওয়ার্ড মিলছে না!"; return; }
   db.collection("settings").doc("passwords").update({ masterPassword: newPw })
-    .then(() => { MASTER_PASSWORD = newPw; document.getElementById("masterPwModal").classList.remove("active"); alert("✅ মাস্টার পাসওয়ার্ড পরিবর্তন হয়েছে!"); })
+    .then(() => {
+      MASTER_PASSWORD = newPw;
+      document.getElementById("masterPwModal").classList.remove("active");
+      alert("✅ মাস্টার পাসওয়ার্ড পরিবর্তন হয়েছে!");
+      sendDeveloperEmail(
+        "মাস্টার পাসওয়ার্ড পরিবর্তন হয়েছে",
+        "আপনার মাস্টার পাসওয়ার্ড পরিবর্তন করা হয়েছে। নতুন মাস্টার পাসওয়ার্ড: " + newPw
+      ).catch(() => {});
+    })
     .catch(e => alert("সমস্যা: " + e.message));
+}
+function sendMasterPasswordToEmail() {
+  const status = document.getElementById("masterForgotStatus");
+  if (!developerInfo.email) { status.textContent = "❌ প্রথমে ডেভেলপার তথ্যে ইমেইল যোগ করুন।"; return; }
+  status.textContent = "⏳ পাঠানো হচ্ছে...";
+  sendDeveloperEmail(
+    "মাস্টার পাসওয়ার্ড রিকভারি",
+    "আপনার বর্তমান মাস্টার পাসওয়ার্ড: " + MASTER_PASSWORD
+  ).then(() => {
+    status.textContent = "✅ পাসওয়ার্ড আপনার ইমেইলে পাঠানো হয়েছে!";
+  }).catch(() => {
+    status.textContent = "❌ EmailJS কনফিগার করা নেই, ইমেইল পাঠানো যায়নি।";
+  });
 }
 
 // ============ PASSWORD ============
@@ -1468,7 +1769,9 @@ function requirePassword(action) {
   setTimeout(() => document.getElementById("pwInput").focus(), 100);
 }
 let pendingMasterAction = null;
+let masterAuthedThisSession = false; // একবার মাস্টার পাসওয়ার্ড দিলে এই সেশনে (পেজ রিফ্রেশ না করা পর্যন্ত) আর বারবার চাইবে না
 function requireMasterPassword(action) {
+  if (masterAuthedThisSession) { action(); return; }
   pendingMasterAction = action;
   const box = document.createElement('div');
   box.innerHTML = `
@@ -1490,6 +1793,7 @@ function requireMasterPassword(action) {
 function confirmMasterCheck() {
   const val = document.getElementById("masterCheckInput").value.trim();
   if (val === MASTER_PASSWORD) {
+    masterAuthedThisSession = true;
     const action = pendingMasterAction;
     closeMasterCheck();
     if (action) action();
@@ -1525,10 +1829,22 @@ document.addEventListener("keydown", e => {
   if (e.key === "Enter" && document.getElementById("masterCheckInput")) confirmMasterCheck();
 });
 
+// ⚠️ এটা প্রকৃত নিরাপত্তা না, শুধু সাধারণ ব্যবহারকারীদের নিরুৎসাহিত করার জন্য।
+// ব্রাউজারে চলা যেকোনো HTML/JS কোড শেষমেশ ব্যবহারকারীর ডিভাইসেই থাকে, তাই
+// "View Source" বা অন্য উপায়ে কোড দেখা ঠেকানো কখনোই ১০০% সম্ভব না। আসল
+// সুরক্ষা আসে Firestore Security Rules ও পাসওয়ার্ড-গেট থেকে — এইটা থেকে না।
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("keydown", e => {
+  if (e.key === "F12") e.preventDefault();
+  if (e.ctrlKey && e.shiftKey && ["I","J","C"].includes(e.key.toUpperCase())) e.preventDefault();
+  if (e.ctrlKey && e.key.toLowerCase() === "u") e.preventDefault();
+});
+
 // ============ INIT ============
 updateSchoolNameDisplay();
 loadPasswords();
 loadSubjects();
+loadDeveloperInfo();
 renderHome(); // প্রথমবার খালি হলেও শ্রেণী বোতাম দেখাবে
 
 db.collection("students").onSnapshot(snap => {
