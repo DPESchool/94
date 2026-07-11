@@ -1,0 +1,40 @@
+{
+  "name": "আপনার স্কুলের নাম | শিক্ষার্থী তথ্য ও ফলাফল ব্যবস্থাপনা",
+  "short_name": "আপনার স্কুল",
+  "description": "যেকোনো প্রাথমিক বিদ্যালয়ের শিক্ষার্থীদের তথ্য ও রেজাল্ট সহজে ম্যানেজ করার একটি আধুনিক ওয়েব অ্যাপ্লিকেশন।",
+  "id": "/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0F172A",
+  "theme_color": "#1E3A8A",
+  "lang": "bn",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

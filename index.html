@@ -5,6 +5,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>শিক্ষার্থী তথ্য ও ফলাফল ব্যবস্থাপনা</title>
+
+<!-- ============ PWA (ইনস্টলযোগ্য অ্যাপ) সাপোর্ট ============ -->
+<!-- manifest.json ও sw.js এই index.html ফাইলের ঠিক পাশেই (একই ফোল্ডারে) রাখতে হবে -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1E3A8A">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="আপনার স্কুলের নাম">
 <meta property="og:type" content="website">
 <meta property="og:title" content="ডিজিটাল প্রাইমারি স্কুল: স্টুডেন্ট ও রেজাল্ট ম্যানেজমেন্ট সিস্টেম">
 <meta property="og:description" content="যেকোনো প্রাথমিক বিদ্যালয়ের শিক্ষার্থীদের তথ্য ও রেজাল্ট সহজে ম্যানেজ করার একটি আধুনিক ওয়েব অ্যাপ্লিকেশন।">
@@ -1888,6 +1899,17 @@ db.collection("results").onSnapshot(snap => {
   if (currentPage==='studentResult') renderStudentResultPage();
   else if (currentPage==='merit') renderMeritPage();
 });
+
+// ============ SERVICE WORKER রেজিস্ট্রেশন (PWA ইনস্টল সাপোর্ট) ============
+// sw.js একই ফোল্ডারে থাকতে হবে। file:// দিয়ে সরাসরি খুললে সাধারণত এটা কাজ করবে না
+// (ব্রাউজার সিকিউরিটির কারণে) — একটা প্রকৃত https:// (বা localhost) হোস্টিং লাগবে।
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js")
+      .then(reg => console.log("Service worker registered:", reg.scope))
+      .catch(err => console.warn("Service worker registration failed:", err.message));
+  });
+}
 </script>
 
 
