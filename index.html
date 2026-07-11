@@ -449,9 +449,9 @@ firebase.auth().signInAnonymously().catch(e => console.error("Anonymous auth fai
 // ============ EmailJS কনফিগারেশন ============
 // ⚠️ নিচের তিনটা মান অবশ্যই আপনার EmailJS ড্যাশবোর্ড থেকে বসাতে হবে,
 // নাহলে মাস্টার পাসওয়ার্ড ইমেইল ফিচারগুলো কাজ করবে না।
-const EMAILJS_PUBLIC_KEY  = "YOUR_EMAILJS_PUBLIC_KEY";   // Account → General → Public Key
-const EMAILJS_SERVICE_ID  = "YOUR_EMAILJS_SERVICE_ID";   // Email Services → Service ID
-const EMAILJS_TEMPLATE_ID = "YOUR_EMAILJS_TEMPLATE_ID";  // Email Templates → Template ID
+const EMAILJS_PUBLIC_KEY  = "DXQ1C6JevFrfjxqpr";   // Account → General → Public Key
+const EMAILJS_SERVICE_ID  = "service_tsu2ctq";   // Email Services → Service ID
+const EMAILJS_TEMPLATE_ID = "template_avy0eu4";  // Email Templates → Template ID
 // টেমপ্লেটে এই দুইটা ভ্যারিয়েবল রাখলেই যথেষ্ট: {{subject}} এবং {{message}}
 if (typeof emailjs !== "undefined" && EMAILJS_PUBLIC_KEY.indexOf("YOUR_") !== 0) {
   emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
