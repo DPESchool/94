@@ -687,23 +687,35 @@ function uploadDevPhoto(input) {
   const file = input.files[0];
   if (!file) return;
   const status = document.getElementById("devPhotoStatus");
-  status.textContent = "⏳ আপলোড হচ্ছে...";
+  status.textContent = "⏳ আপলোড হচ্ছে... ০%";
   const storageRef = firebase.storage().ref().child("developer/photo_" + Date.now() + "_" + file.name);
-  let uploadedUrl = '';
-  storageRef.put(file)
-    .then(snap => snap.ref.getDownloadURL())
-    .then(url => {
-      uploadedUrl = url;
-      return db.collection("settings").doc("developerInfo").set({ photoURL: url }, { merge:true });
-    })
-    .then(() => {
-      status.textContent = "✅ ছবি আপলোড সম্পন্ন!";
-      const preview = document.getElementById("devPhotoPreview");
-      const placeholder = document.getElementById("devPhotoPlaceholder");
-      if (preview) { preview.src = uploadedUrl; preview.style.display = 'block'; }
-      if (placeholder) placeholder.style.display = 'none';
-    })
-    .catch(e => { status.textContent = "❌ সমস্যা: " + e.message; });
+  const uploadTask = storageRef.put(file);
+  const timeoutId = setTimeout(() => {
+    status.textContent = "❌ অনেকক্ষণ ধরে আপলোড হচ্ছে না। Firebase Console-এ Storage চালু আছে কিনা এবং Storage Rules-এ লেখার অনুমতি (ও Anonymous Auth চালু) আছে কিনা চেক করুন।";
+  }, 20000);
+  uploadTask.on("state_changed",
+    snap => {
+      const pct = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
+      status.textContent = "⏳ আপলোড হচ্ছে... " + pct + "%";
+    },
+    err => {
+      clearTimeout(timeoutId);
+      status.textContent = "❌ সমস্যা: " + err.message;
+    },
+    () => {
+      clearTimeout(timeoutId);
+      uploadTask.snapshot.ref.getDownloadURL()
+        .then(url => db.collection("settings").doc("developerInfo").set({ photoURL: url }, { merge:true }).then(() => url))
+        .then(url => {
+          status.textContent = "✅ ছবি আপলোড সম্পন্ন!";
+          const preview = document.getElementById("devPhotoPreview");
+          const placeholder = document.getElementById("devPhotoPlaceholder");
+          if (preview) { preview.src = url; preview.style.display = 'block'; }
+          if (placeholder) placeholder.style.display = 'none';
+        })
+        .catch(e => { status.textContent = "❌ সমস্যা: " + e.message; });
+    }
+  );
 }
 
 // ============ SCHOOL NAME ============
